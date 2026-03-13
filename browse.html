@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creative Commons Digital Asset Finder</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<div class="container">
+
+<a class="navbar-brand" href="index.html">Creative Commons Asset Finder</a>
+
+<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+<span class="navbar-toggler-icon"></span>
+</button>
+
+<div class="collapse navbar-collapse" id="navMenu">
+
+<ul class="navbar-nav ms-auto">
+
+<li class="nav-item">
+<a class="nav-link" href="index.html">Home</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="about.html">About</a>
+</li>
+
+<li class="nav-item dropdown">
+<a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+Browse
+</a>
+
+<ul class="dropdown-menu">
+<li><a class="dropdown-item" href="browse.html">Photo, Video, Audio</a></li>
+<li><a class="dropdown-item" href="poly.html">3D Images</a></li>
+</ul>
+
+</li>
+
+</ul>
+</div>
+</div>
+</nav>
+
+
+<!-- MAIN CONTENT -->
+<main class="container py-5 page-content">
+
+<div class="row justify-content-center">
+<div class="col-lg-8">
+
+<h1 class="mb-3 text-center">Wiki Commons Search</h1>
+
+<p class="text-center">
+Search Wikimedia Commons for images, video, and audio. Metadata includes title, creator, license, credit, and source URL.
+</p>
+
+</div>
+</div>
+
+
+<!-- SEARCH BAR -->
+<div class="row justify-content-center mb-4">
+
+<div class="col-md-6">
+
+<form id="searchForm" class="input-group">
+<input id="q" type="text" class="form-control" placeholder="Try: library, mural..." required>
+<button class="btn btn-primary" type="submit">Search</button>
+</form>
+
+</div>
+
+</div>
+
+
+<!-- STATUS -->
+<div class="row justify-content-center">
+<div class="col-md-8 text-center">
+<div id="status" class="mb-3" aria-live="polite"></div>
+</div>
+</div>
+
+
+<!-- RESULTS GRID -->
+<div class="row g-4" id="results" aria-live="polite"></div>
+
+</main>
+
+
+
+<footer class="bg-light text-center mt-5 py-3">
+<small>© 2026 Thomas Macaluso. All rights reserved.</small>
+</footer>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<script>
+
+const form = document.getElementById("searchForm");
+const resultsEl = document.getElementById("results");
+const statusEl = document.getElementById("status");
+
+function stripHtml(html){
+if(!html) return "";
+const div=document.createElement("div");
+div.innerHTML=html;
+return(div.textContent||div.innerText||"").trim();
+}
+
+function getExt(meta,key){
+return meta&&meta[key]?stripHtml(meta[key].value):"";
+}
+
+function safeText(s){
+return(s||"").replace(/\s+/g," ").trim();
+}
+
+async function searchCommons(query){
+
+const endpoint="https://commons.wikimedia.org/w/api.php";
+const url=new URL(endpoint);
+
+url.searchParams.set("origin","*");
+url.searchParams.set("format","json");
+url.searchParams.set("action","query");
+url.searchParams.set("generator","search");
+url.searchParams.set("gsrsearch",query);
+url.searchParams.set("gsrnamespace","6");
+url.searchParams.set("gsrlimit","50");
+url.searchParams.set("prop","imageinfo");
+url.searchParams.set("iiprop","url|extmetadata");
+url.searchParams.set("iiurlwidth","520");
+
+const resp=await fetch(url.toString());
+if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+return resp.json();
+}
+
+function renderResults(pagesObj){
+
+resultsEl.innerHTML="";
+const pages=Object.values(pagesObj||{});
+
+if(pages.length===0){
+statusEl.textContent="No results found.";
+return;
+}
+
+statusEl.textContent=`Showing ${pages.length} results`;
+
+for(const p of pages){
+
+const info=(p.imageinfo&&p.imageinfo[0])?p.imageinfo[0]:null;
+if(!info) continue;
+
+const pageUrl=info.descriptionurl||"";
+const thumb=info.thumburl||info.url||"";
+const meta=info.extmetadata||{};
+
+const licenseShort=safeText(getExt(meta,"LicenseShortName"));
+const licenseUrl=safeText(getExt(meta,"LicenseUrl"));
+const artist=safeText(getExt(meta,"Artist"));
+const credit=safeText(getExt(meta,"Credit"));
+
+const title=safeText(p.title||"").replace(/^File:/,"");
+
+const attribution=[
+title?`"${title}"`:"",
+artist?`by ${artist}`:"",
+pageUrl?`Source: ${pageUrl}`:"",
+licenseShort?`License: ${licenseShort}`:""
+].filter(Boolean).join(" | ");
+
+const col=document.createElement("div");
+col.className="col-md-6 col-lg-4"
+
+col.innerHTML=`
+
+<div class="card h-100 shadow-sm">
+
+<img src="${thumb}" class="card-img-top asset-thumb" alt="${title}">
+
+<div class="card-body">
+
+<h6 class="card-title">${title||"Untitled file"}</h6>
+
+<p class="card-text"><strong>Creator:</strong> ${artist||"Not listed"}</p>
+
+<p class="card-text"><strong>License:</strong>
+${
+licenseUrl
+? `<a href="${licenseUrl}" target="_blank">${licenseShort}</a>`
+: (licenseShort||"Not listed")
+}
+</p>
+
+<p class="card-text"><strong>Credit:</strong> ${credit||"Not listed"}</p>
+
+<textarea class="form-control mb-2" rows="2" readonly>${attribution}</textarea>
+
+<button class="btn btn-sm btn-outline-primary copyBtn">Copy attribution</button>
+
+<a href="${pageUrl}" target="_blank" class="btn btn-sm btn-outline-secondary ms-2">
+Open asset
+</a>
+
+</div>
+</div>
+
+`;
+
+const copyBtn=col.querySelector(".copyBtn");
+const textArea=col.querySelector("textarea");
+
+copyBtn.addEventListener("click",async()=>{
+try{
+await navigator.clipboard.writeText(textArea.value);
+copyBtn.textContent="Copied";
+setTimeout(()=>copyBtn.textContent="Copy attribution",1200);
+}catch{
+textArea.select();
+document.execCommand("copy");
+}
+});
+
+resultsEl.appendChild(col);
+}
+
+}
+
+form.addEventListener("submit",async(e)=>{
+
+e.preventDefault();
+
+const query=document.getElementById("q").value.trim();
+
+resultsEl.innerHTML="";
+statusEl.textContent="Searching...";
+
+try{
+
+const data=await searchCommons(query);
+const pages=data?.query?.pages;
+
+if(!pages){
+statusEl.textContent="No results found.";
+return;
+}
+
+renderResults(pages);
+
+}catch(err){
+
+statusEl.textContent=`Error: ${err.message}`;
+
+}
+
+});
+
+</script>
+
+</body>
+</html>
