@@ -95,6 +95,17 @@ Search Wikimedia Commons for images, video, and audio. Metadata includes title, 
 <!-- RESULTS GRID -->
 <div class="row g-4" id="results" aria-live="polite"></div>
 
+<div class="row mt-4">
+  <div class="col text-center">
+    <button id="prevBtn" class="btn btn-outline-secondary me-2" type="button" hidden>
+      Previous
+    </button>
+    <button id="nextBtn" class="btn btn-outline-primary" type="button" hidden>
+      Next
+    </button>
+  </div>
+</div>
+
 </main>
 
 
@@ -109,169 +120,339 @@ Search Wikimedia Commons for images, video, and audio. Metadata includes title, 
 
 
 <script>
-
 const form = document.getElementById("searchForm");
 const resultsEl = document.getElementById("results");
 const statusEl = document.getElementById("status");
+const nextBtn = document.getElementById("nextBtn");
+const prevBtn = document.getElementById("prevBtn");
 
-function stripHtml(html){
-if(!html) return "";
-const div=document.createElement("div");
-div.innerHTML=html;
-return(div.textContent||div.innerText||"").trim();
+let currentQuery = "";
+let nextGsrOffset = null;
+let previousOffsets = [];
+let currentOffset = 0;
+
+function stripHtml(html) {
+  if (!html) return "";
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return (div.textContent || div.innerText || "").trim();
 }
 
-function getExt(meta,key){
-return meta&&meta[key]?stripHtml(meta[key].value):"";
+function getExt(meta, key) {
+  return meta && meta[key] ? stripHtml(meta[key].value) : "";
 }
 
-function safeText(s){
-return(s||"").replace(/\s+/g," ").trim();
+function safeText(s) {
+  return (s || "").replace(/\s+/g, " ").trim();
 }
 
-async function searchCommons(query){
-
-const endpoint="https://commons.wikimedia.org/w/api.php";
-const url=new URL(endpoint);
-
-url.searchParams.set("origin","*");
-url.searchParams.set("format","json");
-url.searchParams.set("action","query");
-url.searchParams.set("generator","search");
-url.searchParams.set("gsrsearch",query);
-url.searchParams.set("gsrnamespace","6");
-url.searchParams.set("gsrlimit","50");
-url.searchParams.set("prop","imageinfo");
-url.searchParams.set("iiprop","url|extmetadata");
-url.searchParams.set("iiurlwidth","520");
-
-const resp=await fetch(url.toString());
-if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
-
-return resp.json();
+function safeHtml(s) {
+  return (s || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
-function renderResults(pagesObj){
+async function searchCommons(query, offset = null) {
+  const endpoint = "https://commons.wikimedia.org/w/api.php";
+  const url = new URL(endpoint);
 
-resultsEl.innerHTML="";
-const pages=Object.values(pagesObj||{});
+  url.searchParams.set("origin", "*");
+  url.searchParams.set("format", "json");
+  url.searchParams.set("action", "query");
+  url.searchParams.set("generator", "search");
+  url.searchParams.set("gsrsearch", query);
+  url.searchParams.set("gsrnamespace", "6");
+  url.searchParams.set("gsrlimit", "50");
+  url.searchParams.set("prop", "imageinfo|categories");
+  url.searchParams.set("iiprop", "url|extmetadata|mime|size");
+  url.searchParams.set("iiurlwidth", "520");
+  url.searchParams.set("cllimit", "10");
 
-if(pages.length===0){
-statusEl.textContent="No results found.";
-return;
+  if (offset !== null) {
+    url.searchParams.set("gsroffset", offset);
+  }
+
+  const resp = await fetch(url.toString());
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+  return resp.json();
 }
 
-statusEl.textContent=`Showing ${pages.length} results`;
+function buildMetadataRows(data) {
+  const rows = [
+    ["Title", data.title],
+    ["Creator", data.creator],
+    ["Contributor / Credit", data.credit],
+    ["Description", data.description],
+    ["Date", data.date],
+    ["Type", data.type],
+    ["Format", data.format],
+    ["Publisher / Repository", data.publisher],
+    ["Source", data.source],
+    ["Identifier", data.identifier],
+    ["Language", data.language],
+    ["Relation", data.relation],
+    ["Coverage", data.coverage],
+    ["Subject", data.subject],
+    ["Rights", data.rights],
+    ["License URL", data.licenseUrl]
+  ];
 
-for(const p of pages){
-
-const info=(p.imageinfo&&p.imageinfo[0])?p.imageinfo[0]:null;
-if(!info) continue;
-
-const pageUrl=info.descriptionurl||"";
-const thumb=info.thumburl||info.url||"";
-const meta=info.extmetadata||{};
-
-const licenseShort=safeText(getExt(meta,"LicenseShortName"));
-const licenseUrl=safeText(getExt(meta,"LicenseUrl"));
-const artist=safeText(getExt(meta,"Artist"));
-const credit=safeText(getExt(meta,"Credit"));
-
-const title=safeText(p.title||"").replace(/^File:/,"");
-
-const attribution=[
-title?`"${title}"`:"",
-artist?`by ${artist}`:"",
-pageUrl?`Source: ${pageUrl}`:"",
-licenseShort?`License: ${licenseShort}`:""
-].filter(Boolean).join(" | ");
-
-const col=document.createElement("div");
-col.className="col-md-6 col-lg-4"
-
-col.innerHTML=`
-
-<div class="card h-100 shadow-sm">
-
-<img src="${thumb}" class="card-img-top asset-thumb" alt="${title}">
-
-<div class="card-body">
-
-<h6 class="card-title">${title||"Untitled file"}</h6>
-
-<p class="card-text"><strong>Creator:</strong> ${artist||"Not listed"}</p>
-
-<p class="card-text"><strong>License:</strong>
-${
-licenseUrl
-? `<a href="${licenseUrl}" target="_blank">${licenseShort}</a>`
-: (licenseShort||"Not listed")
+  return rows
+    .filter(([, value]) => value && value !== "Not listed")
+    .map(([label, value]) => {
+      const isUrl = /^https?:\/\//i.test(value);
+      return `
+        <div class="mb-2">
+          <strong>${safeHtml(label)}:</strong>
+          ${
+            isUrl
+              ? `<a href="${value}" target="_blank" rel="noopener noreferrer">${safeHtml(value)}</a>`
+              : safeHtml(value)
+          }
+        </div>
+      `;
+    })
+    .join("");
 }
-</p>
 
-<p class="card-text"><strong>Credit:</strong> ${credit||"Not listed"}</p>
+function renderResults(pagesObj) {
+  resultsEl.innerHTML = "";
+  const pages = Object.values(pagesObj || {});
 
-<textarea class="form-control mb-2" rows="2" readonly>${attribution}</textarea>
+  if (pages.length === 0) {
+    statusEl.textContent = "No results found.";
+    return;
+  }
 
-<button class="btn btn-sm btn-outline-primary copyBtn">Copy attribution</button>
+  statusEl.textContent = `Showing ${pages.length} results`;
 
-<a href="${pageUrl}" target="_blank" class="btn btn-sm btn-outline-secondary ms-2">
-Open asset
-</a>
+  for (const p of pages) {
+    const info = (p.imageinfo && p.imageinfo[0]) ? p.imageinfo[0] : null;
+    if (!info) continue;
 
-</div>
-</div>
+    const pageUrl = info.descriptionurl || "";
+    const thumb = info.thumburl || info.url || "";
+    const meta = info.extmetadata || {};
+    const categories = (p.categories || []).map(c => safeText(c.title.replace(/^Category:/, "")));
 
-`;
+    const title = safeText(p.title || "").replace(/^File:/, "");
+    const creator = safeText(getExt(meta, "Artist")) || "Not listed";
+    const credit = safeText(getExt(meta, "Credit")) || "Not listed";
+    const description = safeText(getExt(meta, "ImageDescription")) || "Not listed";
+    const date = safeText(getExt(meta, "DateTimeOriginal")) || safeText(getExt(meta, "DateTime")) || "Not listed";
+    const licenseShort = safeText(getExt(meta, "LicenseShortName")) || "Not listed";
+    const licenseUrl = safeText(getExt(meta, "LicenseUrl")) || "";
+    const usageTerms = safeText(getExt(meta, "UsageTerms")) || "";
+    const attributionRequired = safeText(getExt(meta, "AttributionRequired")) || "";
+    const mimeType = safeText(info.mime) || "Not listed";
+    const objectName = safeText(getExt(meta, "ObjectName")) || "";
+    const language = safeText(getExt(meta, "Language")) || "Not listed";
 
-const copyBtn=col.querySelector(".copyBtn");
-const textArea=col.querySelector("textarea");
+    const subject = categories.length ? categories.join(", ") : "Not listed";
+    const type = mimeType.startsWith("image/")
+      ? "Image"
+      : mimeType.startsWith("audio/")
+      ? "Audio"
+      : mimeType.startsWith("video/")
+      ? "Video"
+      : "Media";
+    const format = mimeType;
+    const publisher = "Wikimedia Commons";
+    const source = pageUrl || "Not listed";
+    const identifier = pageUrl || "Not listed";
+    const relation = objectName || "Not listed";
+    const coverage = "Not listed";
+    const rights = usageTerms || licenseShort || "Not listed";
 
-copyBtn.addEventListener("click",async()=>{
-try{
-await navigator.clipboard.writeText(textArea.value);
-copyBtn.textContent="Copied";
-setTimeout(()=>copyBtn.textContent="Copy attribution",1200);
-}catch{
-textArea.select();
-document.execCommand("copy");
+    const attribution = [
+      title ? `"${title}"` : "",
+      creator && creator !== "Not listed" ? `by ${creator}` : "",
+      pageUrl ? `Source: ${pageUrl}` : "",
+      licenseShort && licenseShort !== "Not listed" ? `License: ${licenseShort}` : ""
+    ].filter(Boolean).join(" | ");
+
+    const metadataHtml = buildMetadataRows({
+      title,
+      creator,
+      credit,
+      description,
+      date,
+      type,
+      format,
+      publisher,
+      source,
+      identifier,
+      language,
+      relation,
+      coverage,
+      subject,
+      rights,
+      licenseUrl
+    });
+
+    const col = document.createElement("div");
+    col.className = "col-md-6 col-lg-4";
+
+    col.innerHTML = `
+      <div class="card h-100 shadow-sm">
+        <img src="${thumb}" class="card-img-top asset-thumb" alt="${safeHtml(title)}">
+
+        <div class="card-body d-flex flex-column">
+          <h6 class="card-title">${safeHtml(title || "Untitled file")}</h6>
+
+          <p class="card-text mb-1"><strong>Creator:</strong> ${safeHtml(creator)}</p>
+          <p class="card-text mb-1"><strong>License:</strong>
+            ${
+              licenseUrl
+                ? `<a href="${licenseUrl}" target="_blank" rel="noopener noreferrer">${safeHtml(licenseShort)}</a>`
+                : safeHtml(licenseShort)
+            }
+          </p>
+          <p class="card-text mb-2"><strong>Credit:</strong> ${safeHtml(credit)}</p>
+
+          <label class="form-label small">Attribution to copy</label>
+          <textarea class="form-control mb-2" rows="2" readonly>${attribution}</textarea>
+
+          <div class="d-flex gap-2 flex-wrap mb-3">
+            <button class="btn btn-sm btn-outline-primary copyBtn" type="button">Copy attribution</button>
+            <a href="${pageUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary">
+              Open asset
+            </a>
+          </div>
+
+          <details class="mt-auto metadata-details">
+            <summary class="btn btn-sm btn-outline-dark">View metadata</summary>
+            <div class="metadata-panel mt-3 small">
+              ${metadataHtml}
+              ${
+                attributionRequired
+                  ? `<div class="mb-2"><strong>Attribution Required:</strong> ${safeHtml(attributionRequired)}</div>`
+                  : ""
+              }
+            </div>
+          </details>
+        </div>
+      </div>
+    `;
+
+    const copyBtn = col.querySelector(".copyBtn");
+    const textArea = col.querySelector("textarea");
+
+    copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(textArea.value);
+        copyBtn.textContent = "Copied";
+        setTimeout(() => {
+          copyBtn.textContent = "Copy attribution";
+        }, 1200);
+      } catch {
+        textArea.select();
+        document.execCommand("copy");
+        copyBtn.textContent = "Copied";
+        setTimeout(() => {
+          copyBtn.textContent = "Copy attribution";
+        }, 1200);
+      }
+    });
+
+    resultsEl.appendChild(col);
+  }
 }
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const query = document.getElementById("q").value.trim();
+
+  resultsEl.innerHTML = "";
+  statusEl.textContent = "Searching...";
+  nextBtn.hidden = true;
+  prevBtn.hidden = true;
+
+  nextGsrOffset = null;
+  previousOffsets = [];
+  currentOffset = 0;
+
+  try {
+    const data = await searchCommons(query);
+
+    currentQuery = query;
+    nextGsrOffset = data?.continue?.gsroffset ?? null;
+    nextBtn.hidden = nextGsrOffset === null;
+
+    const pages = data?.query?.pages;
+
+    if (!pages) {
+      statusEl.textContent = "No results found.";
+      return;
+    }
+
+    renderResults(pages);
+  } catch (err) {
+    statusEl.textContent = `Error: ${err.message}`;
+  }
 });
 
-resultsEl.appendChild(col);
-}
+nextBtn.addEventListener("click", async () => {
+  if (nextGsrOffset === null || !currentQuery) return;
 
-}
+  previousOffsets.push(currentOffset);
+  currentOffset = nextGsrOffset;
 
-form.addEventListener("submit",async(e)=>{
+  prevBtn.hidden = false;
 
-e.preventDefault();
+  resultsEl.innerHTML = "";
+  statusEl.textContent = "Loading next page...";
 
-const query=document.getElementById("q").value.trim();
+  try {
+    const data = await searchCommons(currentQuery, currentOffset);
 
-resultsEl.innerHTML="";
-statusEl.textContent="Searching...";
+    nextGsrOffset = data?.continue?.gsroffset ?? null;
+    nextBtn.hidden = nextGsrOffset === null;
 
-try{
+    const pages = data?.query?.pages;
 
-const data=await searchCommons(query);
-const pages=data?.query?.pages;
+    if (!pages) {
+      statusEl.textContent = "No more results found.";
+      return;
+    }
 
-if(!pages){
-statusEl.textContent="No results found.";
-return;
-}
-
-renderResults(pages);
-
-}catch(err){
-
-statusEl.textContent=`Error: ${err.message}`;
-
-}
-
+    renderResults(pages);
+  } catch (err) {
+    statusEl.textContent = `Error: ${err.message}`;
+  }
 });
 
+prevBtn.addEventListener("click", async () => {
+  if (previousOffsets.length === 0) return;
+
+  currentOffset = previousOffsets.pop();
+
+  resultsEl.innerHTML = "";
+  statusEl.textContent = "Loading previous page...";
+
+  try {
+    const data = await searchCommons(currentQuery, currentOffset);
+
+    nextGsrOffset = data?.continue?.gsroffset ?? null;
+    nextBtn.hidden = nextGsrOffset === null;
+    prevBtn.hidden = previousOffsets.length === 0;
+
+    const pages = data?.query?.pages;
+
+    if (!pages) {
+      statusEl.textContent = "No results found.";
+      return;
+    }
+
+    renderResults(pages);
+  } catch (err) {
+    statusEl.textContent = `Error: ${err.message}`;
+  }
+});
 </script>
 
 </body>

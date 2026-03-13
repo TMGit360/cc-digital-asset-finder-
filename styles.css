@@ -95,3 +95,17 @@ footer {
   transform: translateY(-4px);
   box-shadow: 0 .75rem 1.5rem rgba(0,0,0,.15);
 }
+
+.metadata-details summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.metadata-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.metadata-panel {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.75rem;
+}
