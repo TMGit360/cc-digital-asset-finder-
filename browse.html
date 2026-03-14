@@ -12,10 +12,8 @@
 
 <body>
 
-  <!-- NAVBAR -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-
       <a class="navbar-brand" href="index.html">Creative Commons Asset Finder</a>
 
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
@@ -27,11 +25,9 @@
           <li class="nav-item">
             <a class="nav-link" href="index.html">Home</a>
           </li>
-
           <li class="nav-item">
             <a class="nav-link active" href="browse.html">Search</a>
           </li>
-
           <li class="nav-item">
             <a class="nav-link" href="about.html">About</a>
           </li>
@@ -40,20 +36,17 @@
     </div>
   </nav>
 
-  <!-- MAIN CONTENT -->
   <main class="container py-5 page-content">
 
     <div class="row justify-content-center">
       <div class="col-lg-8">
         <h1 class="mb-3 text-center">Search Wikimedia Commons</h1>
-
         <p class="text-center">
-          Search Wikimedia Commons for images, video, and audio. Each asset includes structured metadata aligned with digital library standards.
+          Search Wikimedia Commons for images, audio, and video. Each asset includes structured metadata aligned with digital library standards.
         </p>
       </div>
     </div>
 
-    <!-- SEARCH BAR -->
     <div class="row justify-content-center mb-4">
       <div class="col-md-6">
         <form id="searchForm" class="input-group">
@@ -63,17 +56,14 @@
       </div>
     </div>
 
-    <!-- STATUS -->
     <div class="row justify-content-center">
       <div class="col-md-8 text-center">
         <div id="status" class="mb-3" aria-live="polite"></div>
       </div>
     </div>
 
-    <!-- RESULTS GRID -->
     <div class="row g-4" id="results" aria-live="polite"></div>
 
-    <!-- PAGINATION -->
     <div class="row mt-4">
       <div class="col text-center">
         <div id="pageIndicator" class="mb-3 fw-semibold" hidden>Page 1</div>
@@ -100,12 +90,11 @@
     const paginationNav = document.getElementById("paginationNav");
     const paginationEl = document.getElementById("pagination");
 
-    let currentQuery = "";
     let currentPage = 1;
     let totalPages = 1;
     let currentResults = [];
 
-    const RESULTS_PER_PAGE = 12;
+    const RESULTS_PER_PAGE = 25;
     const MAX_FETCH_RESULTS = 250;
 
     function stripHtml(html) {
@@ -152,6 +141,58 @@
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
       return resp.json();
+    }
+
+    function isRenderableAsset(page) {
+      if (!page || !page.imageinfo || !page.imageinfo[0]) return false;
+
+      const info = page.imageinfo[0];
+      const mime = safeText(info.mime || "").toLowerCase();
+      const mediaUrl = safeText(info.url || "");
+      const thumbUrl = safeText(info.thumburl || "");
+
+      if (mime.startsWith("audio/")) {
+        return !!mediaUrl;
+      }
+
+      if (mime.startsWith("video/")) {
+        return !!mediaUrl;
+      }
+
+      if (mime.startsWith("image/")) {
+        return !!(thumbUrl || mediaUrl);
+      }
+
+      return false;
+    }
+
+    function renderMediaElement(info, title) {
+      const mimeType = safeText(info.mime || "").toLowerCase();
+      const mediaUrl = info.url || "";
+      const thumbUrl = info.thumburl || mediaUrl || "";
+      const safeTitle = safeHtml(title || "Media asset");
+
+      if (mimeType.startsWith("audio/")) {
+        return `
+          <div class="p-3">
+            <audio controls preload="none" class="w-100">
+              <source src="${mediaUrl}" type="${mimeType}">
+              Your browser does not support the audio element.
+            </audio>
+          </div>
+        `;
+      }
+
+      if (mimeType.startsWith("video/")) {
+        return `
+          <video controls preload="metadata" class="card-img-top asset-thumb">
+            <source src="${mediaUrl}" type="${mimeType}">
+            Your browser does not support the video tag.
+          </video>
+        `;
+      }
+
+      return `<img src="${thumbUrl}" class="card-img-top asset-thumb" alt="${safeTitle}">`;
     }
 
     function buildMetadataRows(data) {
@@ -206,6 +247,8 @@
 
       if (pageResults.length === 0) {
         statusEl.textContent = "No results found.";
+        pageIndicator.hidden = true;
+        paginationNav.hidden = true;
         return;
       }
 
@@ -217,10 +260,7 @@
       pageIndicator.textContent = `Page ${page} of ${totalPages}`;
 
       for (const p of pageResults) {
-        const info = (p.imageinfo && p.imageinfo[0]) ? p.imageinfo[0] : null;
-        if (!info) continue;
-
-        const thumb = info.thumburl || info.url || "";
+        const info = p.imageinfo[0];
         const meta = info.extmetadata || {};
         const categories = (p.categories || []).map(c =>
           safeText(c.title.replace(/^Category:/, ""))
@@ -267,7 +307,7 @@
         const format = mimeType;
         const publisher = "Wikimedia Commons";
         const source = "Wikimedia Commons";
-        const identifier = "Wikimedia Commons";
+        const identifier = p.pageid ? String(p.pageid) : "Not listed";
         const relation = objectName || "Not listed";
         const coverage = "Not listed";
         const rights = usageTerms || licenseShort || "Not listed";
@@ -297,7 +337,7 @@
 
         col.innerHTML = `
           <div class="card h-100 shadow-sm">
-            <img src="${thumb}" class="card-img-top asset-thumb" alt="${safeHtml(title)}">
+            ${renderMediaElement(info, title)}
 
             <div class="card-body d-flex flex-column">
               <h6 class="card-title mb-3">${safeHtml(title || "Untitled file")}</h6>
@@ -421,7 +461,6 @@
       paginationNav.hidden = true;
       paginationEl.innerHTML = "";
 
-      currentQuery = query;
       currentPage = 1;
       totalPages = 1;
       currentResults = [];
@@ -436,35 +475,12 @@
         }
 
         currentResults = Object.values(pagesObj)
-  .filter(p => p.imageinfo && p.imageinfo[0] && (p.imageinfo[0].thumburl || p.imageinfo[0].url))
-  .map(p => {
-      const info = p.imageinfo[0];
-      const mime = (info.mime || "").toLowerCase();
-
-      if (
-        mime.startsWith("image/") ||
-        mime.startsWith("audio/") ||
-        mime.startsWith("video/")
-      ) {
-        return p;
-      }
-
-      return null;
-  })
-  .filter(Boolean);
-
-  totalPages = Math.ceil(currentResults.length / RESULTS_PER_PAGE);
+          .filter(isRenderableAsset);
 
         if (!currentResults.length) {
-          statusEl.textContent = "No results found.";
+          statusEl.textContent = "No usable media assets found.";
           return;
         }
-
-        currentResults.sort((a, b) => {
-          const aIndex = a.index ?? 0;
-          const bIndex = b.index ?? 0;
-          return aIndex - bIndex;
-        });
 
         totalPages = Math.ceil(currentResults.length / RESULTS_PER_PAGE);
 
