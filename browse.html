@@ -42,7 +42,7 @@
       <div class="col-lg-8">
         <h1 class="mb-3 text-center">Search Wikimedia Commons</h1>
         <p class="text-center">
-          Search Wikimedia Commons for images, audio, and video. Each asset includes structured metadata aligned with digital library standards.
+          Search Wikimedia Commons for images, audio, and video. Each asset includes structured metadata.
         </p>
       </div>
     </div>
@@ -94,7 +94,7 @@
     let totalPages = 1;
     let currentResults = [];
 
-    const RESULTS_PER_PAGE = 25;
+    const RESULTS_PER_PAGE =12;
     const MAX_FETCH_RESULTS = 250;
 
     function stripHtml(html) {
@@ -147,9 +147,9 @@
       if (!page || !page.imageinfo || !page.imageinfo[0]) return false;
 
       const info = page.imageinfo[0];
-      const mime = safeText(info.mime || "").toLowerCase();
-      const mediaUrl = safeText(info.url || "");
-      const thumbUrl = safeText(info.thumburl || "");
+      const mime = (info.mime || "").toLowerCase();
+      const mediaUrl = info.url || "";
+      const thumbUrl = info.thumburl || "";
 
       if (mime.startsWith("audio/")) {
         return !!mediaUrl;
@@ -166,8 +166,10 @@
       return false;
     }
 
+
     function renderMediaElement(info, title) {
-      const mimeType = safeText(info.mime || "").toLowerCase();
+
+      const mimeType = (info.mime || "").toLowerCase();
       const mediaUrl = info.url || "";
       const thumbUrl = info.thumburl || mediaUrl || "";
       const safeTitle = safeHtml(title || "Media asset");
@@ -175,9 +177,8 @@
       if (mimeType.startsWith("audio/")) {
         return `
           <div class="p-3">
-            <audio controls preload="none" class="w-100">
+            <audio controls style="width:100%">
               <source src="${mediaUrl}" type="${mimeType}">
-              Your browser does not support the audio element.
             </audio>
           </div>
         `;
@@ -185,9 +186,8 @@
 
       if (mimeType.startsWith("video/")) {
         return `
-          <video controls preload="metadata" class="card-img-top asset-thumb">
+          <video controls class="card-img-top asset-thumb">
             <source src="${mediaUrl}" type="${mimeType}">
-            Your browser does not support the video tag.
           </video>
         `;
       }
