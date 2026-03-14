@@ -30,28 +30,21 @@
 </li>
 
 <li class="nav-item">
+<a class="nav-link" href="browse.html">Search</a>
+</li>
+
+<li class="nav-item">
 <a class="nav-link active" href="about.html">About</a>
 </li>
 
-<li class="nav-item dropdown">
-<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-Browse
-</a>
-
-<ul class="dropdown-menu">
-<li><a class="dropdown-item" href="browse.html">Wiki Commons</a></li>
-<li><a class="dropdown-item" href="poly.html">Poly Haven</a></li>
 </ul>
 
-</li>
-
-</ul>
 </div>
 </div>
 </nav>
 
 
-<div class="container mt-5">
+<main class="container py-5 page-content">
 
 <div class="row justify-content-center">
 <div class="col-lg-8">
@@ -62,30 +55,25 @@ Browse
 <div class="card-body">
 
 <p>
-This prototype showcases the implementation and integration of RESTful APIs to explore how APIs can help users retrieve rich-media and associated metadata.
-Future development will include full integration of video and audio playback without leaving the application, along with expanded metadata fields.
+This prototype demonstrates how RESTful APIs can support discovery of openly licensed media and associated metadata through a clean web interface.
+</p>
+
+<p>
+The application uses the Wikimedia Commons API to retrieve media records and present structured metadata aligned with digital library practices and Dublin Core-inspired fields.
 </p>
 
 <p>
 ChatGPT-5.2 assisted with development of the API integration script and responsive styling.
-It generated a JavaScript Fetch API template for returning data objects and metadata.
 All concepts, written content, and final design decisions were created by the author.
 </p>
 
-<h4 class="mt-4">Poly Haven</h4>
-
-<p>
-<a href="https://polyhaven.com/" target="_blank">Poly Haven</a> is an open 3D asset repository widely used by game developers and digital artists.
-It provides high-resolution textures, models, and environment assets.
-</p>
-
-<h4 class="mt-4">Wiki Commons</h4>
+<h4 class="mt-4">Wikimedia Commons</h4>
 
 <p>
 This tool uses the
-<a href="https://www.mediawiki.org/wiki/API:Action_API" target="_blank">MediaWiki Action API</a>
+<a href="https://www.mediawiki.org/wiki/API:Action_API" target="_blank" rel="noopener noreferrer">MediaWiki Action API</a>
 to access data from
-<a href="https://commons.wikimedia.org/w/api.php" target="_blank">Wikimedia Commons</a>.
+<a href="https://commons.wikimedia.org/w/api.php" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>.
 </p>
 
 </div>
@@ -94,7 +82,7 @@ to access data from
 </div>
 </div>
 
-</div>
+</main>
 
 
 <footer class="bg-light text-center mt-5 py-3">
