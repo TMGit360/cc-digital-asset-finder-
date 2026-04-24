@@ -1,90 +1,137 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Creative Commons Digital Asset Finder</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https://upload.wikimedia.org https://commons.wikimedia.org data: blob:; media-src https://upload.wikimedia.org; connect-src https://commons.wikimedia.org; frame-src 'none'; object-src 'none'; base-uri 'self';">
+  <title>About — Creative Commons Digital Asset Finder</title>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-<div class="container">
+<a href="#main-content" class="skip-link">Skip to main content</a>
 
-<a class="navbar-brand" href="index.html">Creative Commons Asset Finder</a>
+<nav class="navbar navbar-expand-lg" aria-label="Main navigation">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">Creative Commons Asset Finder</a>
 
-<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-<span class="navbar-toggler-icon"></span>
-</button>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-<div class="collapse navbar-collapse" id="navMenu">
-
-<ul class="navbar-nav ms-auto">
-
-<li class="nav-item">
-<a class="nav-link" href="index.html">Home</a>
-</li>
-
-<li class="nav-item">
-<a class="nav-link" href="browse.html">Search</a>
-</li>
-
-<li class="nav-item">
-<a class="nav-link active" href="about.html">About</a>
-</li>
-
-</ul>
-
-</div>
-</div>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="browse.html">Search</a></li>
+        <li class="nav-item"><a class="nav-link active" href="about.html" aria-current="page">About</a></li>
+      </ul>
+    </div>
+  </div>
 </nav>
 
+<main id="main-content" class="page-content container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
 
-<main class="container py-5 page-content">
+      <h1 class="mb-5">About This Project</h1>
 
-<div class="row justify-content-center">
-<div class="col-lg-8">
+      <div class="content-card mb-4">
+        <h2>Overview</h2>
+        <p>
+          This application demonstrates how RESTful APIs can support discovery of
+          openly licensed media and structured rights metadata through a clean
+          scholarly interface. It is intended as a reference tool for researchers,
+          educators, and cultural heritage practitioners.
+        </p>
+        <p class="mb-0">
+          Queries are executed in real time against the
+          <a href="https://www.mediawiki.org/wiki/API:Action_API" target="_blank" rel="noopener noreferrer">MediaWiki Action API</a>,
+          drawing from the
+          <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>
+          repository of over 100 million freely reusable media files.
+        </p>
+      </div>
 
-<h1 class="text-center mb-4">About This Project</h1>
+      <div class="content-card mb-4">
+        <h2>Metadata Standard — Dublin Core</h2>
+        <p>
+          Each asset record is presented using the
+          <a href="https://www.dublincore.org/specifications/dublin-core/dcmi-terms/" target="_blank" rel="noopener noreferrer">Dublin Core Metadata Initiative (DCMI) terms</a>,
+          the internationally recognised standard for interoperable resource
+          description used by libraries, archives, and museums worldwide.
+        </p>
+        <p>The following terms are surfaced where data is available:</p>
 
-<div class="card shadow-sm">
-<div class="card-body">
+        <table class="table table-sm" style="font-size:.875rem;">
+          <thead>
+            <tr>
+              <th style="color:var(--color-accent);font-weight:700;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;">Term</th>
+              <th style="color:var(--color-accent);font-weight:700;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;">Namespace</th>
+              <th style="color:var(--color-accent);font-weight:700;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;">Source in Record</th>
+            </tr>
+          </thead>
+          <tbody style="color:var(--color-text-muted);">
+            <tr><td>Title</td><td><code>dc:title</code></td><td>ObjectName / filename</td></tr>
+            <tr><td>Creator</td><td><code>dc:creator</code></td><td>Artist field</td></tr>
+            <tr><td>Contributor</td><td><code>dc:contributor</code></td><td>Credit field</td></tr>
+            <tr><td>Description</td><td><code>dc:description</code></td><td>ImageDescription</td></tr>
+            <tr><td>Subject</td><td><code>dc:subject</code></td><td>Wikimedia categories</td></tr>
+            <tr><td>Date</td><td><code>dc:date</code></td><td>DateTimeOriginal</td></tr>
+            <tr><td>Modified</td><td><code>dcterms:modified</code></td><td>DateTime (file)</td></tr>
+            <tr><td>Type</td><td><code>dc:type</code></td><td>DCMI Type Vocabulary</td></tr>
+            <tr><td>Format</td><td><code>dc:format</code></td><td>MIME type</td></tr>
+            <tr><td>Medium</td><td><code>dcterms:medium</code></td><td>Derived from MIME type</td></tr>
+            <tr><td>Extent</td><td><code>dcterms:extent</code></td><td>Dimensions + file size</td></tr>
+            <tr><td>Publisher</td><td><code>dc:publisher</code></td><td>Wikimedia Commons</td></tr>
+            <tr><td>Source</td><td><code>dc:source</code></td><td>Asset page URL</td></tr>
+            <tr><td>Identifier</td><td><code>dc:identifier</code></td><td>Wikimedia page ID</td></tr>
+            <tr><td>Language</td><td><code>dc:language</code></td><td>Language field</td></tr>
+            <tr><td>Spatial Coverage</td><td><code>dcterms:spatial</code></td><td>GPS coordinates</td></tr>
+            <tr><td>Rights</td><td><code>dc:rights</code></td><td>UsageTerms / license name</td></tr>
+            <tr><td>License</td><td><code>dcterms:license</code></td><td>LicenseUrl</td></tr>
+            <tr><td>Access Rights</td><td><code>dcterms:accessRights</code></td><td>Attribution / permissions</td></tr>
+          </tbody>
+        </table>
 
-<p>
-This prototype demonstrates how RESTful APIs can support discovery of openly licensed media and associated metadata through a clean web interface.
-</p>
+        <p class="mb-0" style="font-size:.875rem;">
+          Type values follow the
+          <a href="https://www.dublincore.org/specifications/dublin-core/dcmi-type-vocabulary/" target="_blank" rel="noopener noreferrer">DCMI Type Vocabulary</a>:
+          <em>Image</em>, <em>Sound</em>, and <em>MovingImage</em>.
+        </p>
+      </div>
 
-<p>
-The application uses the Wikimedia Commons API to retrieve media records and present structured metadata fields.
-</p>
+      <div class="content-card">
+        <h2>Data Source &amp; API</h2>
+        <p>
+          All media and metadata are retrieved live from
+          <a href="https://commons.wikimedia.org/w/api.php" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>
+          via the MediaWiki Action API using the <code>query</code> action with
+          the <code>imageinfo</code> property and <code>extmetadata</code> sub-property.
+          No data is stored locally; results reflect the current state of the repository.
+        </p>
+        <p class="mb-0">
+          Wikimedia Commons is operated by the
+          <a href="https://wikimediafoundation.org/" target="_blank" rel="noopener noreferrer">Wikimedia Foundation</a>
+          and hosts content under Creative Commons and public domain licenses.
+        </p>
+      </div>
 
-<h4 class="mt-4">Wikimedia Commons</h4>
-
-<p>
-This tool uses the
-<a href="https://www.mediawiki.org/wiki/API:Action_API" target="_blank" rel="noopener noreferrer">MediaWiki Action API</a>
-to access data from
-<a href="https://commons.wikimedia.org/w/api.php" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>.
-</p>
-
-</div>
-</div>
-
-</div>
-</div>
-
+    </div>
+  </div>
 </main>
 
-
-<footer class="bg-light text-center mt-5 py-3">
-<small>© 2026 Thomas Macaluso. All rights reserved.</small>
+<footer>
+  <div class="container">
+    <p class="footer-text mb-0">© 2026 Thomas Macaluso. All rights reserved.</p>
+  </div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 </body>
 </html>

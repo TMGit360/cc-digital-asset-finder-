@@ -1,496 +1,733 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Creative Commons Digital Asset Finder</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https://upload.wikimedia.org https://commons.wikimedia.org data: blob:; media-src https://upload.wikimedia.org; connect-src https://commons.wikimedia.org; frame-src 'none'; object-src 'none'; base-uri 'self';">
+  <title>Search — Creative Commons Digital Asset Finder</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
   <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
-      <a class="navbar-brand" href="index.html">Creative Commons Asset Finder</a>
+<!-- Skip navigation: WCAG 2.4.1 Bypass Blocks -->
+<a href="#main-content" class="skip-link">Skip to main content</a>
 
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+<nav class="navbar navbar-expand-lg" aria-label="Main navigation">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">Creative Commons Asset Finder</a>
 
-      <div class="collapse navbar-collapse" id="navMenu">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="index.html">Home</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link active" href="browse.html">Search</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="about.html">About</a>
-          </li>
-        </ul>
-      </div>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
+      aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link active" href="browse.html" aria-current="page">Search</a></li>
+        <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+      </ul>
     </div>
-  </nav>
+  </div>
+</nav>
 
-  <main class="container py-5 page-content">
+<main id="main-content" class="page-content">
 
+  <!-- Search Header -->
+  <div class="container search-header">
     <div class="row justify-content-center">
       <div class="col-lg-8">
-        <h1 class="mb-3 text-center">Search Wikimedia Commons</h1>
-        <p class="text-center">
-          Search Wikimedia Commons for images, audio, and video. Each asset includes metadata.
-        </p>
+        <span class="search-eyebrow" aria-hidden="true">Wikimedia Commons</span>
+        <h1 class="search-title">Search the Collection</h1>
+        <p class="search-subtitle">Images, audio, and video with full Dublin Core metadata records.</p>
+
+        <div class="search-form-wrap">
+          <!-- WCAG 1.3.1 / 4.1.2: explicit label for search input -->
+          <form id="searchForm">
+            <label for="q" class="sr-only">Search Wikimedia Commons</label>
+            <div class="search-input-group">
+              <input id="q" type="search" class="search-input"
+                placeholder="Try: Rembrandt, Beethoven, Venice…"
+                autocomplete="off" required
+                aria-describedby="search-hint">
+              <button class="search-btn" type="submit">Search</button>
+            </div>
+            <p id="search-hint" class="sr-only">
+              Enter keywords to search Wikimedia Commons for openly licensed media.
+            </p>
+          </form>
+        </div>
       </div>
     </div>
+  </div>
 
-    <div class="row justify-content-center mb-4">
-      <div class="col-md-6">
-        <form id="searchForm" class="input-group">
-          <input id="q" type="text" class="form-control" placeholder="Try: Bach, Violin... " required>
-          <button class="btn btn-primary" type="submit">Search</button>
-        </form>
-      </div>
-    </div>
-
+  <!-- Filter Bar -->
+  <div class="container">
     <div class="row justify-content-center">
-      <div class="col-md-8 text-center">
-        <div id="status" class="mb-3" aria-live="polite"></div>
+      <div class="col-lg-10">
+        <div class="filter-bar">
+
+          <!-- WCAG 1.3.1: fieldset/legend for grouped radio controls -->
+          <fieldset class="filter-group" style="border:none;padding:0;margin:0;">
+            <legend class="filter-label">Type</legend>
+            <div class="type-pills">
+              <input type="radio" name="mediaType" id="typeAll" value="all" checked>
+              <label class="type-pill-label" for="typeAll">All</label>
+
+              <input type="radio" name="mediaType" id="typeImage" value="image">
+              <label class="type-pill-label" for="typeImage">Images</label>
+
+              <input type="radio" name="mediaType" id="typeAudio" value="audio">
+              <label class="type-pill-label" for="typeAudio">Audio</label>
+
+              <input type="radio" name="mediaType" id="typeVideo" value="video">
+              <label class="type-pill-label" for="typeVideo">Video</label>
+            </div>
+          </fieldset>
+
+          <div class="filter-group">
+            <label class="filter-label" for="licenseFilter">License</label>
+            <select id="licenseFilter" class="filter-select">
+              <option value="">All licenses</option>
+              <option value="CC0">CC0 (Public Domain)</option>
+              <option value="CC BY">CC BY</option>
+              <option value="CC BY-SA">CC BY-SA</option>
+              <option value="CC BY-ND">CC BY-ND</option>
+              <option value="CC BY-NC">CC BY-NC</option>
+              <option value="CC BY-NC-SA">CC BY-NC-SA</option>
+              <option value="CC BY-NC-ND">CC BY-NC-ND</option>
+              <option value="Public domain">Public Domain</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label" for="sortOrder">Sort</label>
+            <select id="sortOrder" class="filter-select">
+              <option value="relevance">Relevance</option>
+              <option value="date_desc">Newest first</option>
+              <option value="date_asc">Oldest first</option>
+            </select>
+          </div>
+
+        </div>
       </div>
     </div>
+  </div>
 
-    <div class="row g-4" id="results" aria-live="polite"></div>
+  <!-- Results -->
+  <div class="container pb-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
 
-    <div class="row mt-4">
-      <div class="col text-center">
-        <div id="pageIndicator" class="mb-3 fw-semibold" hidden>Page 1</div>
+        <!-- WCAG 4.1.3: live region for status announcements only -->
+        <div id="status" class="status-bar" role="status" aria-live="polite" aria-atomic="true"></div>
 
-        <nav id="paginationNav" aria-label="Search results pages" hidden>
-          <ul id="pagination" class="pagination justify-content-center flex-wrap"></ul>
-        </nav>
+        <!-- Visually hidden heading so screen-reader users can navigate here -->
+        <h2 class="sr-only" id="results-heading">Search Results</h2>
+
+        <div id="results" class="results-grid" aria-labelledby="results-heading"></div>
+
+        <!-- Pagination -->
+        <div class="pagination-wrap" id="paginationWrap" hidden>
+          <div id="pageIndicator" class="page-indicator" aria-live="polite"></div>
+          <nav aria-label="Search results pages">
+            <ul id="pagination" class="pagination justify-content-center flex-wrap"></ul>
+          </nav>
+        </div>
+
+        <!-- Load More -->
+        <div class="load-more-wrap" id="loadMoreWrap" hidden>
+          <button id="loadMoreBtn" class="btn-load-more" type="button"
+            aria-label="Load the next set of search results">
+            Load more results
+          </button>
+        </div>
+
       </div>
     </div>
+  </div>
 
-  </main>
+</main>
 
-  <footer class="bg-light text-center mt-5 py-3">
-    <small>© 2026 Thomas Macaluso. All rights reserved.</small>
-  </footer>
+<footer>
+  <div class="container">
+    <p class="footer-text mb-0">© 2026 Thomas Macaluso. All rights reserved.</p>
+  </div>
+</footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 
-  <script>
-    const form = document.getElementById("searchForm");
-    const resultsEl = document.getElementById("results");
-    const statusEl = document.getElementById("status");
-    const pageIndicator = document.getElementById("pageIndicator");
-    const paginationNav = document.getElementById("paginationNav");
-    const paginationEl = document.getElementById("pagination");
+<script>
+/* ── Config ── */
+const RESULTS_PER_PAGE = 12;
+const FETCH_BATCH      = 50;
 
-    let currentPage = 1;
-    let totalPages = 1;
-    let currentResults = [];
+/* ── State ── */
+let currentPage     = 1;
+let totalPages      = 1;
+let allResults      = [];
+let filteredResults = [];
+let continueParams  = null;
+let isFetching      = false;
+let currentQuery    = "";
 
-    const RESULTS_PER_PAGE =12;
-    const MAX_FETCH_RESULTS = 250;
+/* ── DOM Refs ── */
+const form           = document.getElementById("searchForm");
+const resultsEl      = document.getElementById("results");
+const statusEl       = document.getElementById("status");
+const paginationWrap = document.getElementById("paginationWrap");
+const pageIndicator  = document.getElementById("pageIndicator");
+const paginationEl   = document.getElementById("pagination");
+const loadMoreWrap   = document.getElementById("loadMoreWrap");
+const loadMoreBtn    = document.getElementById("loadMoreBtn");
 
-    function stripHtml(html) {
-      if (!html) return "";
-      const div = document.createElement("div");
-      div.innerHTML = html;
-      return (div.textContent || div.innerText || "").trim();
-    }
+/* ════════════════════════════════════════════
+   SECURITY UTILITIES
+   ════════════════════════════════════════════ */
 
-    function getExt(meta, key) {
-      return meta && meta[key] ? stripHtml(meta[key].value) : "";
-    }
+function sanitizeUrl(url) {
+  if (!url) return "";
+  const s = String(url).trim();
+  return /^https?:\/\//i.test(s) ? s : "";
+}
 
-    function safeText(s) {
-      return (s || "").replace(/\s+/g, " ").trim();
-    }
+function sanitizeMime(mime) {
+  if (!mime) return "";
+  const s = String(mime).toLowerCase().trim();
+  return /^(image|audio|video)\//.test(s) ? s : "";
+}
 
-    function safeHtml(s) {
-      return (s || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-    }
+function stripHtml(html) {
+  if (!html) return "";
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return (div.textContent || div.innerText || "").trim();
+}
 
-    async function searchCommons(query) {
-      const endpoint = "https://commons.wikimedia.org/w/api.php";
-      const url = new URL(endpoint);
+function safeText(s) { return (s || "").replace(/\s+/g, " ").trim(); }
 
-      url.searchParams.set("origin", "*");
-      url.searchParams.set("format", "json");
-      url.searchParams.set("action", "query");
-      url.searchParams.set("generator", "search");
-      url.searchParams.set("gsrsearch", query);
-      url.searchParams.set("gsrnamespace", "6");
-      url.searchParams.set("gsrlimit", String(MAX_FETCH_RESULTS));
-      url.searchParams.set("prop", "imageinfo|categories|info");
-      url.searchParams.set("iiprop", "url|extmetadata|mime|size");
-      url.searchParams.set("iiurlwidth", "520");
-      url.searchParams.set("cllimit", "10");
-      url.searchParams.set("inprop", "url");
+function safeHtml(s) {
+  return (s || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
-      const resp = await fetch(url.toString());
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+function getExt(meta, key) {
+  return meta && meta[key] ? stripHtml(meta[key].value) : "";
+}
 
-      return resp.json();
-    }
+/* ════════════════════════════════════════════
+   API FETCH
+   ════════════════════════════════════════════ */
 
-    function isRenderableAsset(page) {
-      if (!page || !page.imageinfo || !page.imageinfo[0]) return false;
+async function fetchBatch(query, cont = null) {
+  const url = new URL("https://commons.wikimedia.org/w/api.php");
+  url.searchParams.set("origin",       "*");
+  url.searchParams.set("format",       "json");
+  url.searchParams.set("action",       "query");
+  url.searchParams.set("generator",    "search");
+  url.searchParams.set("gsrsearch",    query);
+  url.searchParams.set("gsrnamespace", "6");
+  url.searchParams.set("gsrlimit",     String(FETCH_BATCH));
+  url.searchParams.set("gsrsort",      "relevance");
+  url.searchParams.set("prop",         "imageinfo|categories|info");
+  url.searchParams.set("iiprop",       "url|extmetadata|mime|size");
+  url.searchParams.set("iiurlwidth",   "520");
+  url.searchParams.set("cllimit",      "15");
+  url.searchParams.set("inprop",       "url");
 
-      const info = page.imageinfo[0];
-      const mime = (info.mime || "").toLowerCase();
-      const mediaUrl = info.url || "";
-      const thumbUrl = info.thumburl || "";
+  if (cont) {
+    Object.entries(cont).forEach(([k, v]) => url.searchParams.set(k, String(v)));
+  }
 
-      if (mime.startsWith("audio/")) {
-        return !!mediaUrl;
+  const resp = await fetch(url.toString());
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  return resp.json();
+}
+
+/* ════════════════════════════════════════════
+   DUBLIN CORE METADATA EXTRACTION
+   ════════════════════════════════════════════ */
+
+const MIME_MEDIUM = {
+  "image/jpeg": "JPEG image",   "image/jpg":  "JPEG image",
+  "image/png":  "PNG image",    "image/gif":  "GIF image",
+  "image/svg+xml": "SVG graphic", "image/tiff": "TIFF image",
+  "image/webp": "WebP image",
+  "audio/ogg":  "OGG audio",    "audio/mpeg": "MP3 audio",
+  "audio/wav":  "WAV audio",    "audio/flac": "FLAC audio",
+  "audio/x-flac": "FLAC audio",
+  "video/webm": "WebM video",   "video/mp4":  "MP4 video",
+  "video/ogg":  "OGG video"
+};
+
+const MIME_DCTYPE = {
+  "image/": "Image",
+  "audio/": "Sound",
+  "video/": "MovingImage"
+};
+
+function extractDC(page) {
+  const info = page.imageinfo[0];
+  const meta = info.extmetadata || {};
+
+  const categories = (page.categories || []).map(c =>
+    safeText(c.title.replace(/^Category:/, ""))
+  );
+
+  const fileName = safeText(page.title || "")
+    .replace(/^File:/, "")
+    .replace(/\.[^/.]+$/, "")
+    .replace(/_/g, " ");
+
+  const rawTitle       = safeText(getExt(meta, "ObjectName"));
+  const rawDescription = safeText(getExt(meta, "ImageDescription"));
+
+  /* dc:title: ObjectName only — the formal catalogued title.
+     displayTitle is used only for the card heading and is not
+     surfaced as a metadata field. */
+  const title        = rawTitle;
+  const displayTitle = rawTitle || rawDescription || fileName;
+
+  const creator     = safeText(getExt(meta, "Artist"));
+  const contributor = safeText(getExt(meta, "Credit"));
+  const description = rawDescription;
+
+  const dateCreated  = safeText(getExt(meta, "DateTimeOriginal"));
+  const dateModified = safeText(getExt(meta, "DateTime"));
+  const date         = dateCreated || dateModified;
+
+  const licenseShort = safeText(getExt(meta, "LicenseShortName"));
+  const licenseUrl   = sanitizeUrl(safeText(getExt(meta, "LicenseUrl")));
+  const usageTerms   = safeText(getExt(meta, "UsageTerms"));
+
+  const attrRequired = safeText(getExt(meta, "AttributionRequired"));
+  const permissions  = safeText(getExt(meta, "Permission"));
+  const restrictions = safeText(getExt(meta, "Restrictions"));
+  const accessRights = [
+    attrRequired === "true" ? "Attribution required" : "",
+    permissions,
+    restrictions
+  ].filter(Boolean).join("; ");
+
+  const language = safeText(getExt(meta, "Language"));
+
+  const gpsLat = safeText(getExt(meta, "GPSLatitude"));
+  const gpsLon = safeText(getExt(meta, "GPSLongitude"));
+  const spatial = (gpsLat && gpsLon) ? `${gpsLat}, ${gpsLon}` : "";
+
+  const mimeType   = sanitizeMime(info.mime);
+  const fileSizeKb = info.size ? `${(info.size / 1024).toFixed(1)} KB` : "";
+  const dims       = (info.width && info.height) ? `${info.width} × ${info.height} px` : "";
+  const extent     = [dims, fileSizeKb].filter(Boolean).join("; ");
+
+  const dcType = Object.entries(MIME_DCTYPE).find(([k]) => mimeType.startsWith(k))?.[1] || "Dataset";
+  const medium = MIME_MEDIUM[mimeType] || mimeType;
+
+  const pageUrl    = sanitizeUrl(page.fullurl || "");
+  const fileUrl    = sanitizeUrl(info.url || "");
+  const subject    = categories.length ? categories.join("; ") : "";
+  const rights     = usageTerms || licenseShort;
+  const identifier = page.pageid ? String(page.pageid) : "";
+
+  return {
+    title,        /* dc:title — ObjectName only; empty if not catalogued */
+    displayTitle, /* card heading only — not a metadata field */
+    creator, contributor, description, subject,
+    date, dateModified: (dateModified && dateModified !== date) ? dateModified : "",
+    type: dcType, format: mimeType, medium, extent,
+    publisher: "Wikimedia Commons",
+    source: pageUrl || fileUrl,
+    identifier, language, spatial, rights, licenseUrl, accessRights,
+    assetPage: pageUrl,
+    _mimeType:     mimeType,
+    _licenseShort: licenseShort
+  };
+}
+
+/* ════════════════════════════════════════════
+   METADATA PANEL HTML
+   ════════════════════════════════════════════ */
+
+function buildMetadataRows(dc) {
+  const rows = [
+    { term: "dc:title",             label: "Title",            value: dc.title },
+    { term: "dc:creator",           label: "Creator",          value: dc.creator },
+    { term: "dc:contributor",       label: "Contributor",      value: dc.contributor },
+    { term: "dc:description",       label: "Description",      value: dc.description },
+    { term: "dc:subject",           label: "Subject",          value: dc.subject },
+    { term: "dc:date",              label: "Date",             value: dc.date },
+    { term: "dcterms:modified",     label: "Modified",         value: dc.dateModified },
+    { term: "dc:type",              label: "Type",             value: dc.type },
+    { term: "dc:format",            label: "Format",           value: dc.format },
+    { term: "dcterms:medium",       label: "Medium",           value: dc.medium },
+    { term: "dcterms:extent",       label: "Extent",           value: dc.extent },
+    { term: "dc:publisher",         label: "Publisher",        value: dc.publisher },
+    { term: "dc:source",            label: "Source",           value: dc.source,    isUrl: true },
+    { term: "dc:identifier",        label: "Identifier",       value: dc.identifier },
+    { term: "dc:language",          label: "Language",         value: dc.language },
+    { term: "dcterms:spatial",      label: "Spatial Coverage", value: dc.spatial },
+    { term: "dc:rights",            label: "Rights",           value: dc.rights },
+    { term: "dcterms:license",      label: "License",          value: dc.licenseUrl, isUrl: true },
+    { term: "dcterms:accessRights", label: "Access Rights",    value: dc.accessRights },
+    { term: "—",               label: "Asset Page",       value: dc.assetPage,  isUrl: true }
+  ];
+
+  return rows
+    .filter(r => r.value && String(r.value).trim())
+    .map(r => {
+      const isUrl = r.isUrl || /^https?:\/\//i.test(r.value);
+      let displayVal;
+      if (isUrl) {
+        const safe  = safeHtml(r.value);
+        const label = r.value.length > 55 ? safeHtml(r.value.slice(0, 55) + "…") : safe;
+        displayVal  = `<a href="${safe}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+      } else {
+        displayVal = safeHtml(r.value);
       }
+      return `<div class="dc-row">
+        <span class="dc-term" title="${safeHtml(r.term)}">${safeHtml(r.label)}</span>
+        <span class="dc-value">${displayVal}</span>
+      </div>`;
+    })
+    .join("");
+}
 
-      if (mime.startsWith("video/")) {
-        return !!mediaUrl;
-      }
+/* ════════════════════════════════════════════
+   MEDIA ELEMENT — all URLs and MIME types sanitised
+   ════════════════════════════════════════════ */
 
-      if (mime.startsWith("image/")) {
-        return !!(thumbUrl || mediaUrl);
-      }
+function renderMediaElement(info, displayTitle) {
+  const mimeType = sanitizeMime(info.mime);
+  const mediaUrl = sanitizeUrl(info.url);
+  const thumbUrl = sanitizeUrl(info.thumburl) || mediaUrl;
+  const altText  = safeHtml(displayTitle || "Media asset");
 
-      return false;
-    }
+  if (!mimeType) {
+    return `<div class="asset-audio-wrap">
+      <span style="color:var(--color-text-muted);font-size:.875rem">Unsupported format</span>
+    </div>`;
+  }
 
+  if (mimeType.startsWith("audio/")) {
+    return `<div class="asset-audio-wrap">
+      <audio controls aria-label="${altText}">
+        <source src="${safeHtml(mediaUrl)}" type="${safeHtml(mimeType)}">
+        Your browser does not support the audio element. Visit the asset page for access.
+      </audio>
+    </div>`;
+  }
 
-    function renderMediaElement(info, title) {
+  if (mimeType.startsWith("video/")) {
+    return `<video controls class="asset-thumb" aria-label="${altText}">
+      <source src="${safeHtml(mediaUrl)}" type="${safeHtml(mimeType)}">
+      Your browser does not support the video element. Visit the asset page for access.
+    </video>`;
+  }
 
-      const mimeType = (info.mime || "").toLowerCase();
-      const mediaUrl = info.url || "";
-      const thumbUrl = info.thumburl || mediaUrl || "";
-      const safeTitle = safeHtml(title || "Media asset");
+  return `<img src="${safeHtml(thumbUrl)}" class="asset-thumb" alt="${altText}" loading="lazy">`;
+}
 
-      if (mimeType.startsWith("audio/")) {
-        return `
-          <div class="p-3">
-            <audio controls style="width:100%">
-              <source src="${mediaUrl}" type="${mimeType}">
-            </audio>
+/* ════════════════════════════════════════════
+   ASSET RENDERABLE CHECK
+   ════════════════════════════════════════════ */
+
+function isRenderable(page) {
+  if (!page?.imageinfo?.[0]) return false;
+  const info    = page.imageinfo[0];
+  const mime    = sanitizeMime(info.mime);
+  const mediaUrl = sanitizeUrl(info.url);
+  const thumbUrl = sanitizeUrl(info.thumburl);
+  if (mime.startsWith("audio/")) return !!mediaUrl;
+  if (mime.startsWith("video/")) return !!mediaUrl;
+  if (mime.startsWith("image/")) return !!(thumbUrl || mediaUrl);
+  return false;
+}
+
+/* ════════════════════════════════════════════
+   RENDER PAGE OF RESULTS
+   ════════════════════════════════════════════ */
+
+function renderPage(page) {
+  resultsEl.innerHTML = "";
+
+  const start = (page - 1) * RESULTS_PER_PAGE;
+  const slice = filteredResults.slice(start, start + RESULTS_PER_PAGE);
+
+  if (!slice.length) {
+    statusEl.textContent = "No results match the current filters.";
+    paginationWrap.hidden = true;
+    return;
+  }
+
+  const badgeLabel = { Image: "IMAGE", Sound: "AUDIO", MovingImage: "VIDEO" };
+
+  for (const p of slice) {
+    const dc    = p._dc;
+    const info  = p.imageinfo[0];
+    const badge = badgeLabel[dc.type] || dc.type.toUpperCase();
+
+    const col = document.createElement("article");
+    col.className = "asset-card";
+
+    /* WCAG 2.4: each card uses <article> + <h3> so SR users can navigate
+       between results with heading/landmark shortcuts.
+       dc:title (metadata) may be empty; displayTitle is always populated. */
+    col.innerHTML = `
+      ${renderMediaElement(info, dc.displayTitle)}
+      <div class="asset-body">
+        <span class="asset-badge" aria-hidden="true">${safeHtml(badge)}</span>
+        <h3 class="asset-title">${safeHtml(dc.displayTitle || "Untitled")}</h3>
+        <details class="metadata-details">
+          <summary>
+            <span class="toggle-arrow" aria-hidden="true">&#9654;</span>
+            View Dublin Core Record
+          </summary>
+          <div class="metadata-panel">
+            ${buildMetadataRows(dc)}
           </div>
-        `;
-      }
+        </details>
+      </div>
+    `;
 
-      if (mimeType.startsWith("video/")) {
-        return `
-          <video controls class="card-img-top asset-thumb">
-            <source src="${mediaUrl}" type="${mimeType}">
-          </video>
-        `;
-      }
+    resultsEl.appendChild(col);
+  }
+}
 
-      return `<img src="${thumbUrl}" class="card-img-top asset-thumb" alt="${safeTitle}">`;
-    }
+/* ════════════════════════════════════════════
+   STATUS TEXT
+   ════════════════════════════════════════════ */
 
-    function buildMetadataRows(data) {
-      const rows = [
-        ["Title", data.title],
-        ["Creator", data.creator],
-        ["Contributor / Credit", data.credit],
-        ["Description", data.description],
-        ["Date", data.date],
-        ["Type", data.type],
-        ["Format", data.format],
-        ["Publisher / Repository", data.publisher],
-        ["Source", data.source],
-        ["Identifier", data.identifier],
-        ["Language", data.language],
-        ["Relation", data.relation],
-        ["Coverage", data.coverage],
-        ["Subject", data.subject],
-        ["Rights", data.rights],
-        ["License URL", data.licenseUrl],
-        ["Original Asset Page", data.assetPage]
-      ];
+function updateStatus() {
+  const total = filteredResults.length;
+  if (!total) return;
+  const start     = (currentPage - 1) * RESULTS_PER_PAGE + 1;
+  const end       = Math.min(start + RESULTS_PER_PAGE - 1, total);
+  const moreAvail = continueParams ? " — more results available" : "";
+  statusEl.textContent = `Showing ${start}–${end} of ${total} results${moreAvail}`;
+}
 
-      return rows
-        .filter(([, value]) => value && value !== "Not listed")
-        .map(([label, value]) => {
-          const isUrl = /^https?:\/\//i.test(value);
-          return `
-            <div class="mb-2">
-              <strong>${safeHtml(label)}:</strong>
-              ${
-                isUrl
-                  ? `<a href="${value}" target="_blank" rel="noopener noreferrer">${safeHtml(value)}</a>`
-                  : safeHtml(value)
-              }
-            </div>
-          `;
-        })
-        .join("");
-    }
+/* ════════════════════════════════════════════
+   FILTERS
+   ════════════════════════════════════════════ */
 
-    function getPageResults(page) {
-      const start = (page - 1) * RESULTS_PER_PAGE;
-      const end = start + RESULTS_PER_PAGE;
-      return currentResults.slice(start, end);
-    }
+function applyFilters() {
+  const mediaType = document.querySelector('input[name="mediaType"]:checked')?.value || "all";
+  const license   = document.getElementById("licenseFilter").value.toLowerCase();
+  const sort      = document.getElementById("sortOrder").value;
 
-    function renderResultsForPage(page) {
-      resultsEl.innerHTML = "";
+  filteredResults = allResults.filter(p => {
+    const dc = p._dc;
+    if (mediaType === "image" && !dc._mimeType.startsWith("image/"))  return false;
+    if (mediaType === "audio" && !dc._mimeType.startsWith("audio/"))  return false;
+    if (mediaType === "video" && !dc._mimeType.startsWith("video/"))  return false;
+    if (license && !dc._licenseShort.toLowerCase().includes(license) &&
+        !dc.rights.toLowerCase().includes(license)) return false;
+    return true;
+  });
 
-      const pageResults = getPageResults(page);
-
-      if (pageResults.length === 0) {
-        statusEl.textContent = "No results found.";
-        pageIndicator.hidden = true;
-        paginationNav.hidden = true;
-        return;
-      }
-
-      const startNum = ((page - 1) * RESULTS_PER_PAGE) + 1;
-      const endNum = startNum + pageResults.length - 1;
-
-      statusEl.textContent = `Showing ${startNum}-${endNum} of ${currentResults.length} results`;
-      pageIndicator.hidden = false;
-      pageIndicator.textContent = `Page ${page} of ${totalPages}`;
-
-      for (const p of pageResults) {
-        const info = p.imageinfo[0];
-        const meta = info.extmetadata || {};
-        const categories = (p.categories || []).map(c =>
-          safeText(c.title.replace(/^Category:/, ""))
-        );
-
-        const fileName = safeText(p.title || "")
-          .replace(/^File:/, "")
-          .replace(/\.[^/.]+$/, "")
-          .replace(/_/g, " ");
-
-        const title =
-          safeText(getExt(meta, "ObjectName")) ||
-          safeText(getExt(meta, "ImageDescription")) ||
-          fileName;
-
-        const creator = safeText(getExt(meta, "Artist")) || "Not listed";
-        const credit = safeText(getExt(meta, "Credit")) || "Not listed";
-        const description = safeText(getExt(meta, "ImageDescription")) || "Not listed";
-
-        const date =
-          safeText(getExt(meta, "DateTimeOriginal")) ||
-          safeText(getExt(meta, "DateTime")) ||
-          "Not listed";
-
-        const licenseShort = safeText(getExt(meta, "LicenseShortName")) || "Not listed";
-        const licenseUrl = safeText(getExt(meta, "LicenseUrl")) || "";
-        const usageTerms = safeText(getExt(meta, "UsageTerms")) || "";
-        const attributionRequired = safeText(getExt(meta, "AttributionRequired")) || "";
-        const mimeType = safeText(info.mime) || "Not listed";
-        const objectName = safeText(getExt(meta, "ObjectName")) || "";
-        const language = safeText(getExt(meta, "Language")) || "Not listed";
-        const assetPage = safeText(p.fullurl) || "";
-
-        const subject = categories.length ? categories.join(", ") : "Not listed";
-
-        const type = mimeType.startsWith("image/")
-          ? "Image"
-          : mimeType.startsWith("audio/")
-          ? "Audio"
-          : mimeType.startsWith("video/")
-          ? "Video"
-          : "Media";
-
-        const format = mimeType;
-        const publisher = "Wikimedia Commons";
-        const source = "Wikimedia Commons";
-        const identifier = p.pageid ? String(p.pageid) : "Not listed";
-        const relation = objectName || "Not listed";
-        const coverage = "Not listed";
-        const rights = usageTerms || licenseShort || "Not listed";
-
-        const metadataHtml = buildMetadataRows({
-          title,
-          creator,
-          credit,
-          description,
-          date,
-          type,
-          format,
-          publisher,
-          source,
-          identifier,
-          language,
-          relation,
-          coverage,
-          subject,
-          rights,
-          licenseUrl,
-          assetPage
-        });
-
-        const col = document.createElement("div");
-        col.className = "col-md-6 col-lg-4";
-
-        col.innerHTML = `
-          <div class="card h-100 shadow-sm">
-            ${renderMediaElement(info, title)}
-
-            <div class="card-body d-flex flex-column">
-              <h6 class="card-title mb-3">${safeHtml(title || "Untitled file")}</h6>
-
-              <details class="mt-auto metadata-details">
-                <summary class="btn btn-sm btn-outline-dark">View metadata</summary>
-                <div class="metadata-panel mt-3 small">
-                  ${metadataHtml}
-                  ${
-                    attributionRequired
-                      ? `<div class="mb-2"><strong>Attribution Required:</strong> ${safeHtml(attributionRequired)}</div>`
-                      : ""
-                  }
-                </div>
-              </details>
-            </div>
-          </div>
-        `;
-
-        resultsEl.appendChild(col);
-      }
-    }
-
-    function createPageItem(label, page, disabled = false, active = false) {
-      const li = document.createElement("li");
-      li.className = `page-item${disabled ? " disabled" : ""}${active ? " active" : ""}`;
-
-      const button = document.createElement("button");
-      button.className = "page-link";
-      button.type = "button";
-      button.textContent = label;
-
-      if (!disabled && !active) {
-        button.addEventListener("click", () => {
-          goToPage(page);
-        });
-      }
-
-      li.appendChild(button);
-      return li;
-    }
-
-    function renderPagination() {
-      paginationEl.innerHTML = "";
-
-      if (!currentResults.length || totalPages <= 1) {
-        paginationNav.hidden = true;
-        return;
-      }
-
-      paginationNav.hidden = false;
-
-      paginationEl.appendChild(
-        createPageItem("Previous", currentPage - 1, currentPage === 1, false)
-      );
-
-      let startPage = Math.max(1, currentPage - 2);
-      let endPage = Math.min(totalPages, currentPage + 2);
-
-      if (currentPage <= 3) {
-        endPage = Math.min(totalPages, 5);
-      }
-
-      if (currentPage >= totalPages - 2) {
-        startPage = Math.max(1, totalPages - 4);
-      }
-
-      if (startPage > 1) {
-        paginationEl.appendChild(createPageItem("1", 1, false, currentPage === 1));
-
-        if (startPage > 2) {
-          const ellipsis = document.createElement("li");
-          ellipsis.className = "page-item disabled";
-          ellipsis.innerHTML = `<span class="page-link">…</span>`;
-          paginationEl.appendChild(ellipsis);
-        }
-      }
-
-      for (let i = startPage; i <= endPage; i++) {
-        paginationEl.appendChild(
-          createPageItem(String(i), i, false, i === currentPage)
-        );
-      }
-
-      if (endPage < totalPages) {
-        if (endPage < totalPages - 1) {
-          const ellipsis = document.createElement("li");
-          ellipsis.className = "page-item disabled";
-          ellipsis.innerHTML = `<span class="page-link">…</span>`;
-          paginationEl.appendChild(ellipsis);
-        }
-
-        paginationEl.appendChild(
-          createPageItem(String(totalPages), totalPages, false, currentPage === totalPages)
-        );
-      }
-
-      paginationEl.appendChild(
-        createPageItem("Next", currentPage + 1, currentPage === totalPages, false)
-      );
-    }
-
-    function goToPage(page) {
-      if (page < 1 || page > totalPages) return;
-
-      currentPage = page;
-      renderResultsForPage(currentPage);
-      renderPagination();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const query = document.getElementById("q").value.trim();
-      if (!query) return;
-
-      resultsEl.innerHTML = "";
-      statusEl.textContent = "Searching...";
-      pageIndicator.hidden = true;
-      paginationNav.hidden = true;
-      paginationEl.innerHTML = "";
-
-      currentPage = 1;
-      totalPages = 1;
-      currentResults = [];
-
-      try {
-        const data = await searchCommons(query);
-        const pagesObj = data?.query?.pages;
-
-        if (!pagesObj) {
-          statusEl.textContent = "No results found.";
-          return;
-        }
-
-        currentResults = Object.values(pagesObj)
-          .filter(isRenderableAsset);
-
-        if (!currentResults.length) {
-          statusEl.textContent = "No usable media assets found.";
-          return;
-        }
-
-        totalPages = Math.ceil(currentResults.length / RESULTS_PER_PAGE);
-
-        renderResultsForPage(currentPage);
-        renderPagination();
-      } catch (err) {
-        statusEl.textContent = `Error: ${err.message}`;
-      }
+  if (sort === "date_desc" || sort === "date_asc") {
+    filteredResults.sort((a, b) => {
+      const da = a._dc.date || "", db = b._dc.date || "";
+      if (!da && !db) return 0;
+      if (!da) return 1;
+      if (!db) return -1;
+      return sort === "date_desc" ? db.localeCompare(da) : da.localeCompare(db);
     });
-  </script>
+  }
+
+  currentPage = 1;
+  totalPages  = Math.ceil(filteredResults.length / RESULTS_PER_PAGE) || 1;
+
+  renderPage(currentPage);
+  renderPagination();
+  updateStatus();
+}
+
+/* ════════════════════════════════════════════
+   PAGINATION
+   ════════════════════════════════════════════ */
+
+function createPageItem(label, page, disabled = false, active = false) {
+  const li  = document.createElement("li");
+  li.className = `page-item${disabled ? " disabled" : ""}${active ? " active" : ""}`;
+
+  const btn = document.createElement("button");
+  btn.className  = "page-link";
+  btn.type       = "button";
+  btn.textContent = label;
+
+  if (active)   btn.setAttribute("aria-current", "page");
+  if (disabled) btn.setAttribute("aria-disabled", "true");
+
+  /* Descriptive aria-labels for prev/next so SR users understand intent */
+  if (label === "Previous") btn.setAttribute("aria-label", "Go to previous page");
+  if (label === "Next")     btn.setAttribute("aria-label", "Go to next page");
+
+  if (!disabled && !active) {
+    btn.addEventListener("click", () => goToPage(page));
+  }
+
+  li.appendChild(btn);
+  return li;
+}
+
+function renderPagination() {
+  paginationEl.innerHTML = "";
+
+  if (totalPages <= 1) { paginationWrap.hidden = true; return; }
+
+  paginationWrap.hidden = false;
+  pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
+
+  paginationEl.appendChild(createPageItem("Previous", currentPage - 1, currentPage === 1));
+
+  let s = Math.max(1, currentPage - 2);
+  let e = Math.min(totalPages, currentPage + 2);
+  if (currentPage <= 3)            e = Math.min(totalPages, 5);
+  if (currentPage >= totalPages - 2) s = Math.max(1, totalPages - 4);
+
+  if (s > 1) {
+    paginationEl.appendChild(createPageItem("1", 1, false, currentPage === 1));
+    if (s > 2) paginationEl.appendChild(createEllipsis());
+  }
+
+  for (let i = s; i <= e; i++) {
+    paginationEl.appendChild(createPageItem(String(i), i, false, i === currentPage));
+  }
+
+  if (e < totalPages) {
+    if (e < totalPages - 1) paginationEl.appendChild(createEllipsis());
+    paginationEl.appendChild(createPageItem(String(totalPages), totalPages, false, currentPage === totalPages));
+  }
+
+  paginationEl.appendChild(createPageItem("Next", currentPage + 1, currentPage === totalPages));
+}
+
+function createEllipsis() {
+  const li = document.createElement("li");
+  li.className = "page-item disabled";
+  li.setAttribute("aria-hidden", "true");
+  li.innerHTML = `<span class="page-link">…</span>`;
+  return li;
+}
+
+function goToPage(page) {
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderPage(currentPage);
+  renderPagination();
+  updateStatus();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* ════════════════════════════════════════════
+   LOAD MORE (LAZY PAGINATION)
+   ════════════════════════════════════════════ */
+
+async function loadMore() {
+  if (isFetching || !continueParams) return;
+  isFetching = true;
+  loadMoreBtn.disabled = true;
+  loadMoreBtn.textContent = "Loading…";
+  loadMoreBtn.setAttribute("aria-busy", "true");
+
+  try {
+    const data     = await fetchBatch(currentQuery, continueParams);
+    const pagesObj = data?.query?.pages;
+
+    if (pagesObj) {
+      const batch = Object.values(pagesObj).filter(isRenderable);
+      batch.forEach(p => { p._dc = extractDC(p); });
+      allResults = [...allResults, ...batch];
+    }
+
+    continueParams      = data?.continue || null;
+    loadMoreWrap.hidden = !continueParams;
+
+    applyFilters();
+  } catch (err) {
+    statusEl.textContent = `Error loading more results: ${safeHtml(err.message)}`;
+  } finally {
+    isFetching = false;
+    if (continueParams) {
+      loadMoreBtn.disabled    = false;
+      loadMoreBtn.textContent = "Load more results";
+      loadMoreBtn.removeAttribute("aria-busy");
+    }
+  }
+}
+
+loadMoreBtn.addEventListener("click", loadMore);
+
+/* ── Filter change handlers ── */
+document.querySelectorAll('input[name="mediaType"]').forEach(r =>
+  r.addEventListener("change", applyFilters)
+);
+document.getElementById("licenseFilter").addEventListener("change", applyFilters);
+document.getElementById("sortOrder").addEventListener("change", applyFilters);
+
+/* ════════════════════════════════════════════
+   SEARCH SUBMIT
+   ════════════════════════════════════════════ */
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const query = document.getElementById("q").value.trim();
+  if (!query) return;
+
+  currentQuery    = query;
+  allResults      = [];
+  filteredResults = [];
+  continueParams  = null;
+  isFetching      = false;
+  currentPage     = 1;
+  totalPages      = 1;
+
+  resultsEl.innerHTML   = "";
+  paginationWrap.hidden = true;
+  loadMoreWrap.hidden   = true;
+  paginationEl.innerHTML = "";
+
+  /* WCAG 4.1.3: announce search in progress via live region */
+  statusEl.textContent = "Searching…";
+
+  try {
+    const data     = await fetchBatch(query);
+    const pagesObj = data?.query?.pages;
+
+    if (!pagesObj) {
+      statusEl.textContent = "No results found.";
+      return;
+    }
+
+    const batch = Object.values(pagesObj).filter(isRenderable);
+    batch.forEach(p => { p._dc = extractDC(p); });
+    allResults = batch;
+
+    continueParams      = data?.continue || null;
+    loadMoreWrap.hidden = !continueParams;
+
+    if (!allResults.length) {
+      statusEl.textContent = "No usable media assets found for that query.";
+      return;
+    }
+
+    applyFilters();
+  } catch (err) {
+    statusEl.textContent = `Search error: ${safeHtml(err.message)}`;
+  }
+});
+</script>
 
 </body>
 </html>

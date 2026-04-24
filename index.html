@@ -1,105 +1,84 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https://upload.wikimedia.org https://commons.wikimedia.org data: blob:; media-src https://upload.wikimedia.org; connect-src https://commons.wikimedia.org; frame-src 'none'; object-src 'none'; base-uri 'self';">
   <title>Creative Commons Digital Asset Finder</title>
 
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- Custom CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
   <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
-<!-- Navigation -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container">
+<a href="#main-content" class="skip-link">Skip to main content</a>
 
+<nav class="navbar navbar-expand-lg" aria-label="Main navigation">
+  <div class="container">
     <a class="navbar-brand" href="index.html">Creative Commons Asset Finder</a>
 
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div class="collapse navbar-collapse" id="navMenu">
-
       <ul class="navbar-nav ms-auto">
-
-        <li class="nav-item">
-          <a class="nav-link active" href="index.html">Home</a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link" href="browse.html">Search</a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link" href="about.html">About</a>
-        </li>
-
+        <li class="nav-item"><a class="nav-link active" href="index.html" aria-current="page">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="browse.html">Search</a></li>
+        <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
       </ul>
-
     </div>
   </div>
 </nav>
 
-
-<!-- Main Content -->
-<div class="container mt-5">
-
-  <div class="text-center mb-4">
-    <h1 class="mb-3">Creative Commons Digital Asset Finder</h1>
-  </div>
-
-  <div class="row justify-content-center">
-    <div class="col-lg-8">
-
-      <div class="card shadow-sm">
-
-        <div class="card-body text-center">
-
-          <h2 class="card-title mb-3">Overview</h2>
-
-          <p class="card-text">
-            The Creative Commons Digital Asset Finder is a web application that enables users
-            to search Wikimedia Commons and explore media with associated rights and metadata.
-          </p>
-
-          <p class="card-text">
-            You can quickly locate images and other media
-            and view metadata.
-          </p>
-
-          <a href="browse.html" class="btn btn-primary mt-3">
-            Start Searching
-          </a>
-
-        </div>
-
-      </div>
-
+<main id="main-content" class="page-content">
+  <section class="hero">
+    <div class="container">
+      <span class="hero-eyebrow">Wikimedia Commons Collection</span>
+      <h1 class="hero-title">Creative Commons<br>Digital Asset Finder</h1>
+      <p class="hero-description">
+        Discover openly licensed images, audio, and video from Wikimedia Commons.
+        Each record presents structured metadata aligned with the Dublin Core
+        Metadata Initiative.
+      </p>
+      <a href="browse.html" class="btn-hero">Search the Collection</a>
     </div>
+  </section>
+
+  <section class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="content-card">
+          <h2 class="mb-4">About This Resource</h2>
+          <p>
+            The Creative Commons Digital Asset Finder connects users to the global
+            repository of openly licensed media hosted on Wikimedia Commons. Every
+            search result surfaces the full Dublin Core metadata record for the
+            asset — including creator, rights, license, format, extent, and
+            spatial coverage where available.
+          </p>
+          <p class="mb-0">
+            Media types supported include images, audio recordings, and video.
+            All assets carry Creative Commons or equivalent open licenses and
+            are retrieved in real time via the
+            <a href="https://www.mediawiki.org/wiki/API:Action_API" target="_blank" rel="noopener noreferrer">MediaWiki Action API</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <p class="footer-text mb-0">© 2026 Thomas Macaluso. All rights reserved.</p>
   </div>
-
-</div>
-
-
-<!-- Footer -->
-<footer class="bg-light text-center mt-5 py-3">
-
-  <small>
-    © 2026 Thomas Macaluso. All rights reserved.
-  </small>
-
 </footer>
 
-
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 </body>
 </html>
