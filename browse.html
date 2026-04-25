@@ -15,7 +15,6 @@
 
 <body>
 
-<!-- Skip navigation: WCAG 2.4.1 Bypass Blocks -->
 <a href="#main-content" class="skip-link">Skip to main content</a>
 
 <nav class="navbar navbar-expand-lg" aria-label="Main navigation">
@@ -45,10 +44,9 @@
       <div class="col-lg-8">
         <span class="search-eyebrow" aria-hidden="true">Wikimedia Commons</span>
         <h1 class="search-title">Search the Collection</h1>
-        <p class="search-subtitle">Images, audio, and video with full Dublin Core metadata records.</p>
+        <p class="search-subtitle">Images, audio, and video</p>
 
         <div class="search-form-wrap">
-          <!-- WCAG 1.3.1 / 4.1.2: explicit label for search input -->
           <form id="searchForm">
             <label for="q" class="sr-only">Search Wikimedia Commons</label>
             <div class="search-input-group">
@@ -58,9 +56,7 @@
                 aria-describedby="search-hint">
               <button class="search-btn" type="submit">Search</button>
             </div>
-            <p id="search-hint" class="sr-only">
-              Enter keywords to search Wikimedia Commons for openly licensed media.
-            </p>
+            <p id="search-hint" class="sr-only">Enter keywords to search Wikimedia Commons for openly licensed media.</p>
           </form>
         </div>
       </div>
@@ -73,23 +69,22 @@
       <div class="col-lg-10">
         <div class="filter-bar">
 
-          <!-- WCAG 1.3.1: fieldset/legend for grouped radio controls -->
-          <fieldset class="filter-group" style="border:none;padding:0;margin:0;">
-            <legend class="filter-label">Type</legend>
+          <div class="filter-group" role="group" aria-labelledby="typeLabel">
+            <span class="filter-label" id="typeLabel">Type</span>
             <div class="type-pills">
-              <input type="radio" name="mediaType" id="typeAll" value="all" checked>
+              <input type="radio" name="mediaType" id="typeAll"   value="all"   checked>
               <label class="type-pill-label" for="typeAll">All</label>
 
               <input type="radio" name="mediaType" id="typeImage" value="image">
               <label class="type-pill-label" for="typeImage">Images</label>
 
-              <input type="radio" name="mediaType" id="typeAudio" value="audio">
-              <label class="type-pill-label" for="typeAudio">Audio</label>
-
               <input type="radio" name="mediaType" id="typeVideo" value="video">
               <label class="type-pill-label" for="typeVideo">Video</label>
+
+              <input type="radio" name="mediaType" id="typeAudio" value="audio">
+              <label class="type-pill-label" for="typeAudio">Audio</label>
             </div>
-          </fieldset>
+          </div>
 
           <div class="filter-group">
             <label class="filter-label" for="licenseFilter">License</label>
@@ -125,12 +120,9 @@
     <div class="row justify-content-center">
       <div class="col-lg-10">
 
-        <!-- WCAG 4.1.3: live region for status announcements only -->
         <div id="status" class="status-bar" role="status" aria-live="polite" aria-atomic="true"></div>
 
-        <!-- Visually hidden heading so screen-reader users can navigate here -->
         <h2 class="sr-only" id="results-heading">Search Results</h2>
-
         <div id="results" class="results-grid" aria-labelledby="results-heading"></div>
 
         <!-- Pagination -->
@@ -169,13 +161,16 @@ const RESULTS_PER_PAGE = 12;
 const FETCH_BATCH      = 50;
 
 /* ── State ── */
-let currentPage     = 1;
-let totalPages      = 1;
-let allResults      = [];
-let filteredResults = [];
-let continueParams  = null;
-let isFetching      = false;
-let currentQuery    = "";
+let currentPage       = 1;
+let totalPages        = 1;
+let allResults        = [];
+let filteredResults   = [];
+let continueParams    = null;
+let isFetching        = false;
+let currentQuery      = "";
+/* tracks which gsrfiletype was used in the last API fetch so we
+   know whether a type-filter change requires a new network request */
+let activeApiFilter   = null; // null | "audio" | "video"
 
 /* ── DOM Refs ── */
 const form           = document.getElementById("searchForm");
@@ -224,11 +219,19 @@ function getExt(meta, key) {
   return meta && meta[key] ? stripHtml(meta[key].value) : "";
 }
 
+/* Extract year only from date string for card display */
+function formatDate(d) {
+  const match = (d || "").match(/\b(1\d{3}|20\d{2})\b/);
+  return match ? match[1] : "";
+}
+
 /* ════════════════════════════════════════════
    API FETCH
+   gsrfiletype: null = all types, "audio", "video"
+   Images dominate unrestricted results so "image" stays client-side only.
    ════════════════════════════════════════════ */
 
-async function fetchBatch(query, cont = null) {
+async function fetchBatch(query, cont = null, gsrfiletype = null) {
   const url = new URL("https://commons.wikimedia.org/w/api.php");
   url.searchParams.set("origin",       "*");
   url.searchParams.set("format",       "json");
@@ -240,9 +243,17 @@ async function fetchBatch(query, cont = null) {
   url.searchParams.set("gsrsort",      "relevance");
   url.searchParams.set("prop",         "imageinfo|categories|info");
   url.searchParams.set("iiprop",       "url|extmetadata|mime|size");
-  url.searchParams.set("iiurlwidth",   "520");
   url.searchParams.set("cllimit",      "15");
   url.searchParams.set("inprop",       "url");
+
+  /* Thumbnail width only helps for images; skip for audio to avoid API noise */
+  if (gsrfiletype !== "audio") {
+    url.searchParams.set("iiurlwidth", "520");
+  }
+
+  if (gsrfiletype) {
+    url.searchParams.set("gsrfiletype", gsrfiletype);
+  }
 
   if (cont) {
     Object.entries(cont).forEach(([k, v]) => url.searchParams.set(k, String(v)));
@@ -251,6 +262,13 @@ async function fetchBatch(query, cont = null) {
   const resp = await fetch(url.toString());
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
+}
+
+/* Map UI type value → gsrfiletype parameter (null = no server filter) */
+function apiFilterFor(type) {
+  if (type === "audio") return "audio";
+  if (type === "video") return "video";
+  return null; // "all" and "image" handled client-side
 }
 
 /* ════════════════════════════════════════════
@@ -291,11 +309,8 @@ function extractDC(page) {
   const rawTitle       = safeText(getExt(meta, "ObjectName"));
   const rawDescription = safeText(getExt(meta, "ImageDescription"));
 
-  /* dc:title: ObjectName only — the formal catalogued title.
-     displayTitle is used only for the card heading and is not
-     surfaced as a metadata field. */
-  const title        = rawTitle;
-  const displayTitle = rawTitle || rawDescription || fileName;
+  const title        = rawTitle;                               // dc:title — ObjectName only
+  const displayTitle = rawTitle || rawDescription || fileName; // card heading
 
   const creator     = safeText(getExt(meta, "Artist"));
   const contributor = safeText(getExt(meta, "Credit"));
@@ -339,8 +354,7 @@ function extractDC(page) {
   const identifier = page.pageid ? String(page.pageid) : "";
 
   return {
-    title,        /* dc:title — ObjectName only; empty if not catalogued */
-    displayTitle, /* card heading only — not a metadata field */
+    title, displayTitle,
     creator, contributor, description, subject,
     date, dateModified: (dateModified && dateModified !== date) ? dateModified : "",
     type: dcType, format: mimeType, medium, extent,
@@ -371,14 +385,14 @@ function buildMetadataRows(dc) {
     { term: "dcterms:medium",       label: "Medium",           value: dc.medium },
     { term: "dcterms:extent",       label: "Extent",           value: dc.extent },
     { term: "dc:publisher",         label: "Publisher",        value: dc.publisher },
-    { term: "dc:source",            label: "Source",           value: dc.source,    isUrl: true },
+    { term: "dc:source",            label: "Source",           value: dc.source,     isUrl: true },
     { term: "dc:identifier",        label: "Identifier",       value: dc.identifier },
     { term: "dc:language",          label: "Language",         value: dc.language },
     { term: "dcterms:spatial",      label: "Spatial Coverage", value: dc.spatial },
     { term: "dc:rights",            label: "Rights",           value: dc.rights },
     { term: "dcterms:license",      label: "License",          value: dc.licenseUrl, isUrl: true },
     { term: "dcterms:accessRights", label: "Access Rights",    value: dc.accessRights },
-    { term: "—",               label: "Asset Page",       value: dc.assetPage,  isUrl: true }
+    { term: "—",                    label: "Asset Page",       value: dc.assetPage,  isUrl: true }
   ];
 
   return rows
@@ -402,7 +416,7 @@ function buildMetadataRows(dc) {
 }
 
 /* ════════════════════════════════════════════
-   MEDIA ELEMENT — all URLs and MIME types sanitised
+   MEDIA ELEMENT
    ════════════════════════════════════════════ */
 
 function renderMediaElement(info, displayTitle) {
@@ -421,7 +435,7 @@ function renderMediaElement(info, displayTitle) {
     return `<div class="asset-audio-wrap">
       <audio controls aria-label="${altText}">
         <source src="${safeHtml(mediaUrl)}" type="${safeHtml(mimeType)}">
-        Your browser does not support the audio element. Visit the asset page for access.
+        Your browser does not support audio. <a href="${safeHtml(sanitizeUrl(info.descriptionurl || ""))}" target="_blank" rel="noopener noreferrer">View on Wikimedia</a>.
       </audio>
     </div>`;
   }
@@ -429,7 +443,7 @@ function renderMediaElement(info, displayTitle) {
   if (mimeType.startsWith("video/")) {
     return `<video controls class="asset-thumb" aria-label="${altText}">
       <source src="${safeHtml(mediaUrl)}" type="${safeHtml(mimeType)}">
-      Your browser does not support the video element. Visit the asset page for access.
+      Your browser does not support video. <a href="${safeHtml(sanitizeUrl(info.descriptionurl || ""))}" target="_blank" rel="noopener noreferrer">View on Wikimedia</a>.
     </video>`;
   }
 
@@ -437,13 +451,13 @@ function renderMediaElement(info, displayTitle) {
 }
 
 /* ════════════════════════════════════════════
-   ASSET RENDERABLE CHECK
+   RENDERABLE CHECK
    ════════════════════════════════════════════ */
 
 function isRenderable(page) {
   if (!page?.imageinfo?.[0]) return false;
-  const info    = page.imageinfo[0];
-  const mime    = sanitizeMime(info.mime);
+  const info     = page.imageinfo[0];
+  const mime     = sanitizeMime(info.mime);
   const mediaUrl = sanitizeUrl(info.url);
   const thumbUrl = sanitizeUrl(info.thumburl);
   if (mime.startsWith("audio/")) return !!mediaUrl;
@@ -470,37 +484,47 @@ function renderPage(page) {
 
   const badgeLabel = { Image: "IMAGE", Sound: "AUDIO", MovingImage: "VIDEO" };
 
-  for (const p of slice) {
-    const dc    = p._dc;
-    const info  = p.imageinfo[0];
-    const badge = badgeLabel[dc.type] || dc.type.toUpperCase();
+  slice.forEach((p, idx) => {
+    const dc      = p._dc;
+    const info    = p.imageinfo[0];
+    const badge   = badgeLabel[dc.type] || dc.type.toUpperCase();
+    const panelId = `meta-${p.pageid || (start + idx)}`;
+    const dateStr = formatDate(dc.date);
 
     const col = document.createElement("article");
     col.className = "asset-card";
 
-    /* WCAG 2.4: each card uses <article> + <h3> so SR users can navigate
-       between results with heading/landmark shortcuts.
-       dc:title (metadata) may be empty; displayTitle is always populated. */
     col.innerHTML = `
       ${renderMediaElement(info, dc.displayTitle)}
       <div class="asset-body">
         <span class="asset-badge" aria-hidden="true">${safeHtml(badge)}</span>
         <h3 class="asset-title">${safeHtml(dc.displayTitle || "Untitled")}</h3>
-        <details class="metadata-details">
-          <summary>
-            <span class="toggle-arrow" aria-hidden="true">&#9654;</span>
-            View Dublin Core Record
-          </summary>
-          <div class="metadata-panel">
-            ${buildMetadataRows(dc)}
-          </div>
-        </details>
+        ${dateStr ? `<p class="asset-date">${safeHtml(dateStr)}</p>` : ""}
+        <button class="metadata-toggle" type="button"
+          aria-expanded="false" aria-controls="${panelId}">
+          <span class="toggle-arrow" aria-hidden="true">&#9654;</span>
+          View Record
+        </button>
+        <div class="metadata-panel" id="${panelId}" hidden>
+          ${buildMetadataRows(dc)}
+        </div>
       </div>
     `;
 
     resultsEl.appendChild(col);
-  }
+  });
 }
+
+/* Single delegated listener for all metadata toggles */
+resultsEl.addEventListener("click", e => {
+  const btn = e.target.closest(".metadata-toggle");
+  if (!btn) return;
+  const panel    = document.getElementById(btn.getAttribute("aria-controls"));
+  if (!panel) return;
+  const expanded = btn.getAttribute("aria-expanded") === "true";
+  btn.setAttribute("aria-expanded", String(!expanded));
+  panel.hidden   = expanded;
+});
 
 /* ════════════════════════════════════════════
    STATUS TEXT
@@ -516,7 +540,7 @@ function updateStatus() {
 }
 
 /* ════════════════════════════════════════════
-   FILTERS
+   FILTERS (client-side: license + sort + image subtype)
    ════════════════════════════════════════════ */
 
 function applyFilters() {
@@ -553,6 +577,70 @@ function applyFilters() {
 }
 
 /* ════════════════════════════════════════════
+   TYPE FILTER — re-fetches server-side for audio / video
+   ════════════════════════════════════════════ */
+
+async function refetchForType(newType) {
+  if (isFetching || !currentQuery) return;
+
+  const needed = apiFilterFor(newType);
+
+  if (needed === activeApiFilter) {
+    /* Same server-side filter — just re-apply client-side filtering */
+    applyFilters();
+    return;
+  }
+
+  isFetching     = true;
+  activeApiFilter = needed;
+  allResults      = [];
+  filteredResults = [];
+  continueParams  = null;
+  currentPage     = 1;
+
+  resultsEl.innerHTML   = "";
+  paginationWrap.hidden = true;
+  loadMoreWrap.hidden   = true;
+  statusEl.textContent  = "Searching…";
+
+  try {
+    const data     = await fetchBatch(currentQuery, null, needed);
+    const pagesObj = data?.query?.pages;
+
+    if (pagesObj) {
+      const batch = Object.values(pagesObj).filter(isRenderable);
+      batch.forEach(p => { p._dc = extractDC(p); });
+      allResults = batch;
+    }
+
+    continueParams      = data?.continue || null;
+    loadMoreWrap.hidden = !continueParams;
+
+    if (!allResults.length) {
+      const label = newType === "all" ? "media" : newType;
+      statusEl.textContent = `No ${label} assets found for "${currentQuery}".`;
+      return;
+    }
+
+    applyFilters();
+  } catch (err) {
+    statusEl.textContent = `Error: ${safeHtml(err.message)}`;
+  } finally {
+    isFetching = false;
+  }
+}
+
+document.querySelectorAll('input[name="mediaType"]').forEach(r =>
+  r.addEventListener("change", () => {
+    const newType = document.querySelector('input[name="mediaType"]:checked')?.value || "all";
+    refetchForType(newType);
+  })
+);
+
+document.getElementById("licenseFilter").addEventListener("change", applyFilters);
+document.getElementById("sortOrder").addEventListener("change", applyFilters);
+
+/* ════════════════════════════════════════════
    PAGINATION
    ════════════════════════════════════════════ */
 
@@ -561,22 +649,26 @@ function createPageItem(label, page, disabled = false, active = false) {
   li.className = `page-item${disabled ? " disabled" : ""}${active ? " active" : ""}`;
 
   const btn = document.createElement("button");
-  btn.className  = "page-link";
-  btn.type       = "button";
+  btn.className   = "page-link";
+  btn.type        = "button";
   btn.textContent = label;
 
   if (active)   btn.setAttribute("aria-current", "page");
   if (disabled) btn.setAttribute("aria-disabled", "true");
-
-  /* Descriptive aria-labels for prev/next so SR users understand intent */
   if (label === "Previous") btn.setAttribute("aria-label", "Go to previous page");
   if (label === "Next")     btn.setAttribute("aria-label", "Go to next page");
 
-  if (!disabled && !active) {
-    btn.addEventListener("click", () => goToPage(page));
-  }
+  if (!disabled && !active) btn.addEventListener("click", () => goToPage(page));
 
   li.appendChild(btn);
+  return li;
+}
+
+function createEllipsis() {
+  const li = document.createElement("li");
+  li.className = "page-item disabled";
+  li.setAttribute("aria-hidden", "true");
+  li.innerHTML = `<span class="page-link">…</span>`;
   return li;
 }
 
@@ -592,7 +684,7 @@ function renderPagination() {
 
   let s = Math.max(1, currentPage - 2);
   let e = Math.min(totalPages, currentPage + 2);
-  if (currentPage <= 3)            e = Math.min(totalPages, 5);
+  if (currentPage <= 3)              e = Math.min(totalPages, 5);
   if (currentPage >= totalPages - 2) s = Math.max(1, totalPages - 4);
 
   if (s > 1) {
@@ -612,14 +704,6 @@ function renderPagination() {
   paginationEl.appendChild(createPageItem("Next", currentPage + 1, currentPage === totalPages));
 }
 
-function createEllipsis() {
-  const li = document.createElement("li");
-  li.className = "page-item disabled";
-  li.setAttribute("aria-hidden", "true");
-  li.innerHTML = `<span class="page-link">…</span>`;
-  return li;
-}
-
 function goToPage(page) {
   if (page < 1 || page > totalPages) return;
   currentPage = page;
@@ -630,18 +714,19 @@ function goToPage(page) {
 }
 
 /* ════════════════════════════════════════════
-   LOAD MORE (LAZY PAGINATION)
+   LOAD MORE
    ════════════════════════════════════════════ */
 
 async function loadMore() {
   if (isFetching || !continueParams) return;
   isFetching = true;
-  loadMoreBtn.disabled = true;
+  loadMoreBtn.disabled    = true;
   loadMoreBtn.textContent = "Loading…";
   loadMoreBtn.setAttribute("aria-busy", "true");
 
   try {
-    const data     = await fetchBatch(currentQuery, continueParams);
+    /* Continue with same server-side filter that was used for initial fetch */
+    const data     = await fetchBatch(currentQuery, continueParams, activeApiFilter);
     const pagesObj = data?.query?.pages;
 
     if (pagesObj) {
@@ -668,13 +753,6 @@ async function loadMore() {
 
 loadMoreBtn.addEventListener("click", loadMore);
 
-/* ── Filter change handlers ── */
-document.querySelectorAll('input[name="mediaType"]').forEach(r =>
-  r.addEventListener("change", applyFilters)
-);
-document.getElementById("licenseFilter").addEventListener("change", applyFilters);
-document.getElementById("sortOrder").addEventListener("change", applyFilters);
-
 /* ════════════════════════════════════════════
    SEARCH SUBMIT
    ════════════════════════════════════════════ */
@@ -693,16 +771,18 @@ form.addEventListener("submit", async (e) => {
   currentPage     = 1;
   totalPages      = 1;
 
-  resultsEl.innerHTML   = "";
-  paginationWrap.hidden = true;
-  loadMoreWrap.hidden   = true;
-  paginationEl.innerHTML = "";
+  /* Honour whatever type pill is currently selected */
+  const selectedType = document.querySelector('input[name="mediaType"]:checked')?.value || "all";
+  activeApiFilter    = apiFilterFor(selectedType);
 
-  /* WCAG 4.1.3: announce search in progress via live region */
-  statusEl.textContent = "Searching…";
+  resultsEl.innerHTML    = "";
+  paginationWrap.hidden  = true;
+  loadMoreWrap.hidden    = true;
+  paginationEl.innerHTML = "";
+  statusEl.textContent   = "Searching…";
 
   try {
-    const data     = await fetchBatch(query);
+    const data     = await fetchBatch(query, null, activeApiFilter);
     const pagesObj = data?.query?.pages;
 
     if (!pagesObj) {
