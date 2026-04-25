@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https://upload.wikimedia.org https://commons.wikimedia.org data: blob:; media-src https://upload.wikimedia.org; connect-src https://commons.wikimedia.org; frame-src 'none'; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https://upload.wikimedia.org https://commons.wikimedia.org data: blob:; media-src https://upload.wikimedia.org; connect-src https://commons.wikimedia.org; frame-src 'none'; object-src 'none'; base-uri 'self';">
   <title>Search — Creative Commons Digital Asset Finder</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -50,6 +50,23 @@
           <form id="searchForm">
             <label for="q" class="sr-only">Search Wikimedia Commons</label>
             <div class="search-input-group">
+              <select id="searchField" class="search-field-select" aria-label="Search field">
+                <option value="all">All Fields</option>
+                <optgroup label="Images">
+                  <option value="creator">Artist / Culture</option>
+                  <option value="title">Title</option>
+                </optgroup>
+                <optgroup label="Date">
+                  <option value="year">Year</option>
+                </optgroup>
+                <optgroup label="Type">
+                  <option value="type">Type</option>
+                </optgroup>
+                <optgroup label="Geographic">
+                  <option value="location">Location</option>
+                </optgroup>
+              </select>
+              <span class="search-field-divider" aria-hidden="true"></span>
               <input id="q" type="search" class="search-input"
                 placeholder="Try: Rembrandt, Beethoven, Venice…"
                 autocomplete="off" required
@@ -63,32 +80,114 @@
     </div>
   </div>
 
-  <!-- Filter Bar -->
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-lg-10">
-        <div class="filter-bar">
+  <!-- Mobile filter toggle (hidden on desktop) -->
+  <div class="container filter-toggle-wrap">
+    <button class="filter-toggle-btn" id="filterToggleBtn" type="button"
+      aria-expanded="false" aria-controls="filterSidebar">
+      <svg width="14" height="11" viewBox="0 0 14 11" fill="none" aria-hidden="true">
+        <rect width="14" height="1.75" rx=".875" fill="currentColor"/>
+        <rect y="4.625" width="10" height="1.75" rx=".875" fill="currentColor"/>
+        <rect y="9.25" width="6" height="1.75" rx=".875" fill="currentColor"/>
+      </svg>
+      Filters
+    </button>
+  </div>
 
-          <div class="filter-group" role="group" aria-labelledby="typeLabel">
-            <span class="filter-label" id="typeLabel">Type</span>
-            <div class="type-pills">
-              <input type="radio" name="mediaType" id="typeAll"   value="all"   checked>
-              <label class="type-pill-label" for="typeAll">All</label>
+  <!-- Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
 
-              <input type="radio" name="mediaType" id="typeImage" value="image">
-              <label class="type-pill-label" for="typeImage">Images</label>
+  <!-- Browse: sidebar + results -->
+  <div class="container browse-layout pb-5">
 
-              <input type="radio" name="mediaType" id="typeVideo" value="video">
-              <label class="type-pill-label" for="typeVideo">Video</label>
+    <!-- ══ Filter Sidebar ══ -->
+    <aside class="filter-sidebar" id="filterSidebar" aria-label="Search filters">
 
-              <input type="radio" name="mediaType" id="typeAudio" value="audio">
-              <label class="type-pill-label" for="typeAudio">Audio</label>
+      <div class="sidebar-header">
+        <span class="sidebar-title">All Fields</span>
+        <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Close filters">&#x2715;</button>
+      </div>
+
+      <!-- Images -->
+      <div class="filter-section open">
+        <button class="filter-section-toggle" type="button"
+          aria-expanded="true" aria-controls="fb-images">
+          Images
+          <svg class="toggle-icon" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
+            <path d="M0 0l5 6 5-6z" fill="currentColor"/>
+          </svg>
+        </button>
+        <div class="filter-section-body" id="fb-images">
+          <div class="filter-field">
+            <label class="filter-field-label" for="filterArtist">Artist / Culture</label>
+            <input type="text" id="filterArtist" class="filter-input"
+              placeholder="e.g. Rembrandt" autocomplete="off">
+          </div>
+          <div class="filter-field">
+            <label class="filter-field-label" for="filterTitle">Title contains</label>
+            <input type="text" id="filterTitle" class="filter-input"
+              placeholder="e.g. Starry Night" autocomplete="off">
+          </div>
+          <label class="filter-checkbox-label">
+            <input type="checkbox" id="filter3D">
+            <span>3D / Stereoscopic</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Date -->
+      <div class="filter-section">
+        <button class="filter-section-toggle" type="button"
+          aria-expanded="false" aria-controls="fb-date">
+          Date
+          <svg class="toggle-icon" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
+            <path d="M0 0l5 6 5-6z" fill="currentColor"/>
+          </svg>
+        </button>
+        <div class="filter-section-body" id="fb-date" hidden>
+          <div class="filter-year-range">
+            <div class="filter-field">
+              <label class="filter-field-label" for="filterYearFrom">From</label>
+              <input type="number" id="filterYearFrom" class="filter-input"
+                placeholder="1800" min="1000" max="2099">
+            </div>
+            <div class="filter-field">
+              <label class="filter-field-label" for="filterYearTo">To</label>
+              <input type="number" id="filterYearTo" class="filter-input"
+                placeholder="1960" min="1000" max="2099">
             </div>
           </div>
+        </div>
+      </div>
 
-          <div class="filter-group">
-            <label class="filter-label" for="licenseFilter">License</label>
-            <select id="licenseFilter" class="filter-select">
+      <!-- Type -->
+      <div class="filter-section">
+        <button class="filter-section-toggle" type="button"
+          aria-expanded="false" aria-controls="fb-type">
+          Type
+          <svg class="toggle-icon" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
+            <path d="M0 0l5 6 5-6z" fill="currentColor"/>
+          </svg>
+        </button>
+        <div class="filter-section-body" id="fb-type" hidden>
+          <p class="filter-section-note">Dublin Core type vocabulary</p>
+          <label class="filter-checkbox-label">
+            <input type="checkbox" name="dcType" value="Image"><span>Image</span>
+          </label>
+          <label class="filter-checkbox-label">
+            <input type="checkbox" name="dcType" value="Sound"><span>Sound</span>
+          </label>
+          <label class="filter-checkbox-label">
+            <input type="checkbox" name="dcType" value="MovingImage"><span>Moving Image</span>
+          </label>
+          <label class="filter-checkbox-label">
+            <input type="checkbox" name="dcType" value="Text"><span>Text</span>
+          </label>
+          <label class="filter-checkbox-label">
+            <input type="checkbox" name="dcType" value="Dataset"><span>Dataset</span>
+          </label>
+          <div class="filter-field filter-field--spaced">
+            <label class="filter-field-label" for="licenseFilter">License</label>
+            <select id="licenseFilter" class="filter-input">
               <option value="">All licenses</option>
               <option value="CC0">CC0 (Public Domain)</option>
               <option value="CC BY">CC BY</option>
@@ -100,50 +199,96 @@
               <option value="Public domain">Public Domain</option>
             </select>
           </div>
+        </div>
+      </div>
 
-          <div class="filter-group">
-            <label class="filter-label" for="sortOrder">Sort</label>
-            <select id="sortOrder" class="filter-select">
-              <option value="relevance">Relevance</option>
-              <option value="date_desc">Newest first</option>
-              <option value="date_asc">Oldest first</option>
-            </select>
+      <!-- Geographic Location -->
+      <div class="filter-section">
+        <button class="filter-section-toggle" type="button"
+          aria-expanded="false" aria-controls="fb-geo">
+          Geographic Location
+          <svg class="toggle-icon" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
+            <path d="M0 0l5 6 5-6z" fill="currentColor"/>
+          </svg>
+        </button>
+        <div class="filter-section-body" id="fb-geo" hidden>
+          <div class="filter-field">
+            <label class="filter-field-label" for="filterLocation">Location Name</label>
+            <input type="text" id="filterLocation" class="filter-input"
+              placeholder="e.g. Paris, Florence" autocomplete="off">
           </div>
-
+          <div class="filter-field">
+            <label class="filter-field-label" for="filterGps">GPS Coordinates</label>
+            <input type="text" id="filterGps" class="filter-input"
+              placeholder="e.g. 48.8566, 2.3522" autocomplete="off">
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- Results -->
-  <div class="container pb-5">
-    <div class="row justify-content-center">
-      <div class="col-lg-10">
-
-        <div id="status" class="status-bar" role="status" aria-live="polite" aria-atomic="true"></div>
-
-        <h2 class="sr-only" id="results-heading">Search Results</h2>
-        <div id="results" class="results-grid" aria-labelledby="results-heading"></div>
-
-        <!-- Pagination -->
-        <div class="pagination-wrap" id="paginationWrap" hidden>
-          <div id="pageIndicator" class="page-indicator" aria-live="polite"></div>
-          <nav aria-label="Search results pages">
-            <ul id="pagination" class="pagination justify-content-center flex-wrap"></ul>
-          </nav>
-        </div>
-
-        <!-- Load More -->
-        <div class="load-more-wrap" id="loadMoreWrap" hidden>
-          <button id="loadMoreBtn" class="btn-load-more" type="button"
-            aria-label="Load the next set of search results">
-            Load more results
-          </button>
-        </div>
-
+      <div class="sidebar-footer">
+        <button type="button" class="btn-clear-filters" id="clearFiltersBtn">
+          Clear all filters
+        </button>
       </div>
-    </div>
-  </div>
+
+    </aside>
+
+    <!-- ══ Results ══ -->
+    <div class="browse-main">
+
+      <!-- Type pills + sort -->
+      <div class="results-topbar">
+        <div class="filter-group" role="group" aria-labelledby="typeLabel">
+          <span class="filter-label" id="typeLabel">Type</span>
+          <div class="type-pills">
+            <input type="radio" name="mediaType" id="typeAll"   value="all"   checked>
+            <label class="type-pill-label" for="typeAll">All</label>
+
+            <input type="radio" name="mediaType" id="typeImage" value="image">
+            <label class="type-pill-label" for="typeImage">Images</label>
+
+            <input type="radio" name="mediaType" id="typeVideo" value="video">
+            <label class="type-pill-label" for="typeVideo">Video</label>
+
+            <input type="radio" name="mediaType" id="typeAudio" value="audio">
+            <label class="type-pill-label" for="typeAudio">Audio</label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label" for="sortOrder">Sort</label>
+          <select id="sortOrder" class="filter-select">
+            <option value="relevance">Relevance</option>
+            <option value="date_desc">Newest first</option>
+            <option value="date_asc">Oldest first</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="status" class="status-bar" role="status" aria-live="polite" aria-atomic="true"></div>
+
+      <h2 class="sr-only" id="results-heading">Search Results</h2>
+      <div id="results" class="results-grid" aria-labelledby="results-heading"></div>
+
+      <!-- Pagination -->
+      <div class="pagination-wrap" id="paginationWrap" hidden>
+        <div id="pageIndicator" class="page-indicator" aria-live="polite"></div>
+        <nav aria-label="Search results pages">
+          <ul id="pagination" class="pagination justify-content-center flex-wrap"></ul>
+        </nav>
+      </div>
+
+      <!-- Load More -->
+      <div class="load-more-wrap" id="loadMoreWrap" hidden>
+        <button id="loadMoreBtn" class="btn-load-more" type="button"
+          aria-label="Load the next set of search results">
+          Load more results
+        </button>
+      </div>
+
+    </div><!-- /.browse-main -->
+
+  </div><!-- /.browse-layout -->
 
 </main>
 
@@ -154,660 +299,7 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-
-<script>
-/* ── Config ── */
-const RESULTS_PER_PAGE = 12;
-const FETCH_BATCH      = 50;
-
-/* ── State ── */
-let currentPage       = 1;
-let totalPages        = 1;
-let allResults        = [];
-let filteredResults   = [];
-let continueParams    = null;
-let isFetching        = false;
-let currentQuery      = "";
-/* tracks which gsrfiletype was used in the last API fetch so we
-   know whether a type-filter change requires a new network request */
-let activeApiFilter   = null; // null | "audio" | "video"
-
-/* ── DOM Refs ── */
-const form           = document.getElementById("searchForm");
-const resultsEl      = document.getElementById("results");
-const statusEl       = document.getElementById("status");
-const paginationWrap = document.getElementById("paginationWrap");
-const pageIndicator  = document.getElementById("pageIndicator");
-const paginationEl   = document.getElementById("pagination");
-const loadMoreWrap   = document.getElementById("loadMoreWrap");
-const loadMoreBtn    = document.getElementById("loadMoreBtn");
-
-/* ════════════════════════════════════════════
-   SECURITY UTILITIES
-   ════════════════════════════════════════════ */
-
-function sanitizeUrl(url) {
-  if (!url) return "";
-  const s = String(url).trim();
-  return /^https?:\/\//i.test(s) ? s : "";
-}
-
-function sanitizeMime(mime) {
-  if (!mime) return "";
-  const s = String(mime).toLowerCase().trim();
-  return /^(image|audio|video)\//.test(s) ? s : "";
-}
-
-function stripHtml(html) {
-  if (!html) return "";
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  return (div.textContent || div.innerText || "").trim();
-}
-
-function safeText(s) { return (s || "").replace(/\s+/g, " ").trim(); }
-
-function safeHtml(s) {
-  return (s || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function getExt(meta, key) {
-  return meta && meta[key] ? stripHtml(meta[key].value) : "";
-}
-
-/* Extract year only from date string for card display */
-function formatDate(d) {
-  const match = (d || "").match(/\b(1\d{3}|20\d{2})\b/);
-  return match ? match[1] : "";
-}
-
-/* ════════════════════════════════════════════
-   API FETCH
-   gsrfiletype: null = all types, "audio", "video"
-   Images dominate unrestricted results so "image" stays client-side only.
-   ════════════════════════════════════════════ */
-
-async function fetchBatch(query, cont = null, gsrfiletype = null) {
-  const url = new URL("https://commons.wikimedia.org/w/api.php");
-  url.searchParams.set("origin",       "*");
-  url.searchParams.set("format",       "json");
-  url.searchParams.set("action",       "query");
-  url.searchParams.set("generator",    "search");
-  url.searchParams.set("gsrsearch",    query);
-  url.searchParams.set("gsrnamespace", "6");
-  url.searchParams.set("gsrlimit",     String(FETCH_BATCH));
-  url.searchParams.set("gsrsort",      "relevance");
-  url.searchParams.set("prop",         "imageinfo|categories|info");
-  url.searchParams.set("iiprop",       "url|extmetadata|mime|size");
-  url.searchParams.set("cllimit",      "15");
-  url.searchParams.set("inprop",       "url");
-
-  /* Thumbnail width only helps for images; skip for audio to avoid API noise */
-  if (gsrfiletype !== "audio") {
-    url.searchParams.set("iiurlwidth", "520");
-  }
-
-  if (gsrfiletype) {
-    url.searchParams.set("gsrfiletype", gsrfiletype);
-  }
-
-  if (cont) {
-    Object.entries(cont).forEach(([k, v]) => url.searchParams.set(k, String(v)));
-  }
-
-  const resp = await fetch(url.toString());
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  return resp.json();
-}
-
-/* Map UI type value → gsrfiletype parameter (null = no server filter) */
-function apiFilterFor(type) {
-  if (type === "audio") return "audio";
-  if (type === "video") return "video";
-  return null; // "all" and "image" handled client-side
-}
-
-/* ════════════════════════════════════════════
-   DUBLIN CORE METADATA EXTRACTION
-   ════════════════════════════════════════════ */
-
-const MIME_MEDIUM = {
-  "image/jpeg": "JPEG image",   "image/jpg":  "JPEG image",
-  "image/png":  "PNG image",    "image/gif":  "GIF image",
-  "image/svg+xml": "SVG graphic", "image/tiff": "TIFF image",
-  "image/webp": "WebP image",
-  "audio/ogg":  "OGG audio",    "audio/mpeg": "MP3 audio",
-  "audio/wav":  "WAV audio",    "audio/flac": "FLAC audio",
-  "audio/x-flac": "FLAC audio",
-  "video/webm": "WebM video",   "video/mp4":  "MP4 video",
-  "video/ogg":  "OGG video"
-};
-
-const MIME_DCTYPE = {
-  "image/": "Image",
-  "audio/": "Sound",
-  "video/": "MovingImage"
-};
-
-function extractDC(page) {
-  const info = page.imageinfo[0];
-  const meta = info.extmetadata || {};
-
-  const categories = (page.categories || []).map(c =>
-    safeText(c.title.replace(/^Category:/, ""))
-  );
-
-  const fileName = safeText(page.title || "")
-    .replace(/^File:/, "")
-    .replace(/\.[^/.]+$/, "")
-    .replace(/_/g, " ");
-
-  const rawTitle       = safeText(getExt(meta, "ObjectName"));
-  const rawDescription = safeText(getExt(meta, "ImageDescription"));
-
-  const title        = rawTitle;                               // dc:title — ObjectName only
-  const displayTitle = rawTitle || rawDescription || fileName; // card heading
-
-  const creator     = safeText(getExt(meta, "Artist"));
-  const contributor = safeText(getExt(meta, "Credit"));
-  const description = rawDescription;
-
-  const dateCreated  = safeText(getExt(meta, "DateTimeOriginal"));
-  const dateModified = safeText(getExt(meta, "DateTime"));
-  const date         = dateCreated || dateModified;
-
-  const licenseShort = safeText(getExt(meta, "LicenseShortName"));
-  const licenseUrl   = sanitizeUrl(safeText(getExt(meta, "LicenseUrl")));
-  const usageTerms   = safeText(getExt(meta, "UsageTerms"));
-
-  const attrRequired = safeText(getExt(meta, "AttributionRequired"));
-  const permissions  = safeText(getExt(meta, "Permission"));
-  const restrictions = safeText(getExt(meta, "Restrictions"));
-  const accessRights = [
-    attrRequired === "true" ? "Attribution required" : "",
-    permissions,
-    restrictions
-  ].filter(Boolean).join("; ");
-
-  const language = safeText(getExt(meta, "Language"));
-
-  const gpsLat = safeText(getExt(meta, "GPSLatitude"));
-  const gpsLon = safeText(getExt(meta, "GPSLongitude"));
-  const spatial = (gpsLat && gpsLon) ? `${gpsLat}, ${gpsLon}` : "";
-
-  const mimeType   = sanitizeMime(info.mime);
-  const fileSizeKb = info.size ? `${(info.size / 1024).toFixed(1)} KB` : "";
-  const dims       = (info.width && info.height) ? `${info.width} × ${info.height} px` : "";
-  const extent     = [dims, fileSizeKb].filter(Boolean).join("; ");
-
-  const dcType = Object.entries(MIME_DCTYPE).find(([k]) => mimeType.startsWith(k))?.[1] || "Dataset";
-  const medium = MIME_MEDIUM[mimeType] || mimeType;
-
-  const pageUrl    = sanitizeUrl(page.fullurl || "");
-  const fileUrl    = sanitizeUrl(info.url || "");
-  const subject    = categories.length ? categories.join("; ") : "";
-  const rights     = usageTerms || licenseShort;
-  const identifier = page.pageid ? String(page.pageid) : "";
-
-  return {
-    title, displayTitle,
-    creator, contributor, description, subject,
-    date, dateModified: (dateModified && dateModified !== date) ? dateModified : "",
-    type: dcType, format: mimeType, medium, extent,
-    publisher: "Wikimedia Commons",
-    source: pageUrl || fileUrl,
-    identifier, language, spatial, rights, licenseUrl, accessRights,
-    assetPage: pageUrl,
-    _mimeType:     mimeType,
-    _licenseShort: licenseShort
-  };
-}
-
-/* ════════════════════════════════════════════
-   METADATA PANEL HTML
-   ════════════════════════════════════════════ */
-
-function buildMetadataRows(dc) {
-  const rows = [
-    { term: "dc:title",             label: "Title",            value: dc.title },
-    { term: "dc:creator",           label: "Creator",          value: dc.creator },
-    { term: "dc:contributor",       label: "Contributor",      value: dc.contributor },
-    { term: "dc:description",       label: "Description",      value: dc.description },
-    { term: "dc:subject",           label: "Subject",          value: dc.subject },
-    { term: "dc:date",              label: "Date",             value: dc.date },
-    { term: "dcterms:modified",     label: "Modified",         value: dc.dateModified },
-    { term: "dc:type",              label: "Type",             value: dc.type },
-    { term: "dc:format",            label: "Format",           value: dc.format },
-    { term: "dcterms:medium",       label: "Medium",           value: dc.medium },
-    { term: "dcterms:extent",       label: "Extent",           value: dc.extent },
-    { term: "dc:publisher",         label: "Publisher",        value: dc.publisher },
-    { term: "dc:source",            label: "Source",           value: dc.source,     isUrl: true },
-    { term: "dc:identifier",        label: "Identifier",       value: dc.identifier },
-    { term: "dc:language",          label: "Language",         value: dc.language },
-    { term: "dcterms:spatial",      label: "Spatial Coverage", value: dc.spatial },
-    { term: "dc:rights",            label: "Rights",           value: dc.rights },
-    { term: "dcterms:license",      label: "License",          value: dc.licenseUrl, isUrl: true },
-    { term: "dcterms:accessRights", label: "Access Rights",    value: dc.accessRights },
-    { term: "—",                    label: "Asset Page",       value: dc.assetPage,  isUrl: true }
-  ];
-
-  return rows
-    .filter(r => r.value && String(r.value).trim())
-    .map(r => {
-      const isUrl = r.isUrl || /^https?:\/\//i.test(r.value);
-      let displayVal;
-      if (isUrl) {
-        const safe  = safeHtml(r.value);
-        const label = r.value.length > 55 ? safeHtml(r.value.slice(0, 55) + "…") : safe;
-        displayVal  = `<a href="${safe}" target="_blank" rel="noopener noreferrer">${label}</a>`;
-      } else {
-        displayVal = safeHtml(r.value);
-      }
-      return `<div class="dc-row">
-        <span class="dc-term" title="${safeHtml(r.term)}">${safeHtml(r.label)}</span>
-        <span class="dc-value">${displayVal}</span>
-      </div>`;
-    })
-    .join("");
-}
-
-/* ════════════════════════════════════════════
-   MEDIA ELEMENT
-   ════════════════════════════════════════════ */
-
-function renderMediaElement(info, displayTitle) {
-  const mimeType = sanitizeMime(info.mime);
-  const mediaUrl = sanitizeUrl(info.url);
-  const thumbUrl = sanitizeUrl(info.thumburl) || mediaUrl;
-  const altText  = safeHtml(displayTitle || "Media asset");
-
-  if (!mimeType) {
-    return `<div class="asset-audio-wrap">
-      <span style="color:var(--color-text-muted);font-size:.875rem">Unsupported format</span>
-    </div>`;
-  }
-
-  if (mimeType.startsWith("audio/")) {
-    return `<div class="asset-audio-wrap">
-      <audio controls aria-label="${altText}">
-        <source src="${safeHtml(mediaUrl)}" type="${safeHtml(mimeType)}">
-        Your browser does not support audio. <a href="${safeHtml(sanitizeUrl(info.descriptionurl || ""))}" target="_blank" rel="noopener noreferrer">View on Wikimedia</a>.
-      </audio>
-    </div>`;
-  }
-
-  if (mimeType.startsWith("video/")) {
-    return `<video controls class="asset-thumb" aria-label="${altText}">
-      <source src="${safeHtml(mediaUrl)}" type="${safeHtml(mimeType)}">
-      Your browser does not support video. <a href="${safeHtml(sanitizeUrl(info.descriptionurl || ""))}" target="_blank" rel="noopener noreferrer">View on Wikimedia</a>.
-    </video>`;
-  }
-
-  return `<img src="${safeHtml(thumbUrl)}" class="asset-thumb" alt="${altText}" loading="lazy">`;
-}
-
-/* ════════════════════════════════════════════
-   RENDERABLE CHECK
-   ════════════════════════════════════════════ */
-
-function isRenderable(page) {
-  if (!page?.imageinfo?.[0]) return false;
-  const info     = page.imageinfo[0];
-  const mime     = sanitizeMime(info.mime);
-  const mediaUrl = sanitizeUrl(info.url);
-  const thumbUrl = sanitizeUrl(info.thumburl);
-  if (mime.startsWith("audio/")) return !!mediaUrl;
-  if (mime.startsWith("video/")) return !!mediaUrl;
-  if (mime.startsWith("image/")) return !!(thumbUrl || mediaUrl);
-  return false;
-}
-
-/* ════════════════════════════════════════════
-   RENDER PAGE OF RESULTS
-   ════════════════════════════════════════════ */
-
-function renderPage(page) {
-  resultsEl.innerHTML = "";
-
-  const start = (page - 1) * RESULTS_PER_PAGE;
-  const slice = filteredResults.slice(start, start + RESULTS_PER_PAGE);
-
-  if (!slice.length) {
-    statusEl.textContent = "No results match the current filters.";
-    paginationWrap.hidden = true;
-    return;
-  }
-
-  const badgeLabel = { Image: "IMAGE", Sound: "AUDIO", MovingImage: "VIDEO" };
-
-  slice.forEach((p, idx) => {
-    const dc      = p._dc;
-    const info    = p.imageinfo[0];
-    const badge   = badgeLabel[dc.type] || dc.type.toUpperCase();
-    const panelId = `meta-${p.pageid || (start + idx)}`;
-    const dateStr = formatDate(dc.date);
-
-    const col = document.createElement("article");
-    col.className = "asset-card";
-
-    col.innerHTML = `
-      ${renderMediaElement(info, dc.displayTitle)}
-      <div class="asset-body">
-        <span class="asset-badge" aria-hidden="true">${safeHtml(badge)}</span>
-        <h3 class="asset-title">${safeHtml(dc.displayTitle || "Untitled")}</h3>
-        ${dateStr ? `<p class="asset-date">${safeHtml(dateStr)}</p>` : ""}
-        <button class="metadata-toggle" type="button"
-          aria-expanded="false" aria-controls="${panelId}">
-          <span class="toggle-arrow" aria-hidden="true">&#9654;</span>
-          View Record
-        </button>
-        <div class="metadata-panel" id="${panelId}" hidden>
-          ${buildMetadataRows(dc)}
-        </div>
-      </div>
-    `;
-
-    resultsEl.appendChild(col);
-  });
-}
-
-/* Single delegated listener for all metadata toggles */
-resultsEl.addEventListener("click", e => {
-  const btn = e.target.closest(".metadata-toggle");
-  if (!btn) return;
-  const panel    = document.getElementById(btn.getAttribute("aria-controls"));
-  if (!panel) return;
-  const expanded = btn.getAttribute("aria-expanded") === "true";
-  btn.setAttribute("aria-expanded", String(!expanded));
-  panel.hidden   = expanded;
-});
-
-/* ════════════════════════════════════════════
-   STATUS TEXT
-   ════════════════════════════════════════════ */
-
-function updateStatus() {
-  const total = filteredResults.length;
-  if (!total) return;
-  const start     = (currentPage - 1) * RESULTS_PER_PAGE + 1;
-  const end       = Math.min(start + RESULTS_PER_PAGE - 1, total);
-  const moreAvail = continueParams ? " — more results available" : "";
-  statusEl.textContent = `Showing ${start}–${end} of ${total} results${moreAvail}`;
-}
-
-/* ════════════════════════════════════════════
-   FILTERS (client-side: license + sort + image subtype)
-   ════════════════════════════════════════════ */
-
-function applyFilters() {
-  const mediaType = document.querySelector('input[name="mediaType"]:checked')?.value || "all";
-  const license   = document.getElementById("licenseFilter").value.toLowerCase();
-  const sort      = document.getElementById("sortOrder").value;
-
-  filteredResults = allResults.filter(p => {
-    const dc = p._dc;
-    if (mediaType === "image" && !dc._mimeType.startsWith("image/"))  return false;
-    if (mediaType === "audio" && !dc._mimeType.startsWith("audio/"))  return false;
-    if (mediaType === "video" && !dc._mimeType.startsWith("video/"))  return false;
-    if (license && !dc._licenseShort.toLowerCase().includes(license) &&
-        !dc.rights.toLowerCase().includes(license)) return false;
-    return true;
-  });
-
-  if (sort === "date_desc" || sort === "date_asc") {
-    filteredResults.sort((a, b) => {
-      const da = a._dc.date || "", db = b._dc.date || "";
-      if (!da && !db) return 0;
-      if (!da) return 1;
-      if (!db) return -1;
-      return sort === "date_desc" ? db.localeCompare(da) : da.localeCompare(db);
-    });
-  }
-
-  currentPage = 1;
-  totalPages  = Math.ceil(filteredResults.length / RESULTS_PER_PAGE) || 1;
-
-  renderPage(currentPage);
-  renderPagination();
-  updateStatus();
-}
-
-/* ════════════════════════════════════════════
-   TYPE FILTER — re-fetches server-side for audio / video
-   ════════════════════════════════════════════ */
-
-async function refetchForType(newType) {
-  if (isFetching || !currentQuery) return;
-
-  const needed = apiFilterFor(newType);
-
-  if (needed === activeApiFilter) {
-    /* Same server-side filter — just re-apply client-side filtering */
-    applyFilters();
-    return;
-  }
-
-  isFetching     = true;
-  activeApiFilter = needed;
-  allResults      = [];
-  filteredResults = [];
-  continueParams  = null;
-  currentPage     = 1;
-
-  resultsEl.innerHTML   = "";
-  paginationWrap.hidden = true;
-  loadMoreWrap.hidden   = true;
-  statusEl.textContent  = "Searching…";
-
-  try {
-    const data     = await fetchBatch(currentQuery, null, needed);
-    const pagesObj = data?.query?.pages;
-
-    if (pagesObj) {
-      const batch = Object.values(pagesObj).filter(isRenderable);
-      batch.forEach(p => { p._dc = extractDC(p); });
-      allResults = batch;
-    }
-
-    continueParams      = data?.continue || null;
-    loadMoreWrap.hidden = !continueParams;
-
-    if (!allResults.length) {
-      const label = newType === "all" ? "media" : newType;
-      statusEl.textContent = `No ${label} assets found for "${currentQuery}".`;
-      return;
-    }
-
-    applyFilters();
-  } catch (err) {
-    statusEl.textContent = `Error: ${safeHtml(err.message)}`;
-  } finally {
-    isFetching = false;
-  }
-}
-
-document.querySelectorAll('input[name="mediaType"]').forEach(r =>
-  r.addEventListener("change", () => {
-    const newType = document.querySelector('input[name="mediaType"]:checked')?.value || "all";
-    refetchForType(newType);
-  })
-);
-
-document.getElementById("licenseFilter").addEventListener("change", applyFilters);
-document.getElementById("sortOrder").addEventListener("change", applyFilters);
-
-/* ════════════════════════════════════════════
-   PAGINATION
-   ════════════════════════════════════════════ */
-
-function createPageItem(label, page, disabled = false, active = false) {
-  const li  = document.createElement("li");
-  li.className = `page-item${disabled ? " disabled" : ""}${active ? " active" : ""}`;
-
-  const btn = document.createElement("button");
-  btn.className   = "page-link";
-  btn.type        = "button";
-  btn.textContent = label;
-
-  if (active)   btn.setAttribute("aria-current", "page");
-  if (disabled) btn.setAttribute("aria-disabled", "true");
-  if (label === "Previous") btn.setAttribute("aria-label", "Go to previous page");
-  if (label === "Next")     btn.setAttribute("aria-label", "Go to next page");
-
-  if (!disabled && !active) btn.addEventListener("click", () => goToPage(page));
-
-  li.appendChild(btn);
-  return li;
-}
-
-function createEllipsis() {
-  const li = document.createElement("li");
-  li.className = "page-item disabled";
-  li.setAttribute("aria-hidden", "true");
-  li.innerHTML = `<span class="page-link">…</span>`;
-  return li;
-}
-
-function renderPagination() {
-  paginationEl.innerHTML = "";
-
-  if (totalPages <= 1) { paginationWrap.hidden = true; return; }
-
-  paginationWrap.hidden = false;
-  pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
-
-  paginationEl.appendChild(createPageItem("Previous", currentPage - 1, currentPage === 1));
-
-  let s = Math.max(1, currentPage - 2);
-  let e = Math.min(totalPages, currentPage + 2);
-  if (currentPage <= 3)              e = Math.min(totalPages, 5);
-  if (currentPage >= totalPages - 2) s = Math.max(1, totalPages - 4);
-
-  if (s > 1) {
-    paginationEl.appendChild(createPageItem("1", 1, false, currentPage === 1));
-    if (s > 2) paginationEl.appendChild(createEllipsis());
-  }
-
-  for (let i = s; i <= e; i++) {
-    paginationEl.appendChild(createPageItem(String(i), i, false, i === currentPage));
-  }
-
-  if (e < totalPages) {
-    if (e < totalPages - 1) paginationEl.appendChild(createEllipsis());
-    paginationEl.appendChild(createPageItem(String(totalPages), totalPages, false, currentPage === totalPages));
-  }
-
-  paginationEl.appendChild(createPageItem("Next", currentPage + 1, currentPage === totalPages));
-}
-
-function goToPage(page) {
-  if (page < 1 || page > totalPages) return;
-  currentPage = page;
-  renderPage(currentPage);
-  renderPagination();
-  updateStatus();
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
-/* ════════════════════════════════════════════
-   LOAD MORE
-   ════════════════════════════════════════════ */
-
-async function loadMore() {
-  if (isFetching || !continueParams) return;
-  isFetching = true;
-  loadMoreBtn.disabled    = true;
-  loadMoreBtn.textContent = "Loading…";
-  loadMoreBtn.setAttribute("aria-busy", "true");
-
-  try {
-    /* Continue with same server-side filter that was used for initial fetch */
-    const data     = await fetchBatch(currentQuery, continueParams, activeApiFilter);
-    const pagesObj = data?.query?.pages;
-
-    if (pagesObj) {
-      const batch = Object.values(pagesObj).filter(isRenderable);
-      batch.forEach(p => { p._dc = extractDC(p); });
-      allResults = [...allResults, ...batch];
-    }
-
-    continueParams      = data?.continue || null;
-    loadMoreWrap.hidden = !continueParams;
-
-    applyFilters();
-  } catch (err) {
-    statusEl.textContent = `Error loading more results: ${safeHtml(err.message)}`;
-  } finally {
-    isFetching = false;
-    if (continueParams) {
-      loadMoreBtn.disabled    = false;
-      loadMoreBtn.textContent = "Load more results";
-      loadMoreBtn.removeAttribute("aria-busy");
-    }
-  }
-}
-
-loadMoreBtn.addEventListener("click", loadMore);
-
-/* ════════════════════════════════════════════
-   SEARCH SUBMIT
-   ════════════════════════════════════════════ */
-
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const query = document.getElementById("q").value.trim();
-  if (!query) return;
-
-  currentQuery    = query;
-  allResults      = [];
-  filteredResults = [];
-  continueParams  = null;
-  isFetching      = false;
-  currentPage     = 1;
-  totalPages      = 1;
-
-  /* Honour whatever type pill is currently selected */
-  const selectedType = document.querySelector('input[name="mediaType"]:checked')?.value || "all";
-  activeApiFilter    = apiFilterFor(selectedType);
-
-  resultsEl.innerHTML    = "";
-  paginationWrap.hidden  = true;
-  loadMoreWrap.hidden    = true;
-  paginationEl.innerHTML = "";
-  statusEl.textContent   = "Searching…";
-
-  try {
-    const data     = await fetchBatch(query, null, activeApiFilter);
-    const pagesObj = data?.query?.pages;
-
-    if (!pagesObj) {
-      statusEl.textContent = "No results found.";
-      return;
-    }
-
-    const batch = Object.values(pagesObj).filter(isRenderable);
-    batch.forEach(p => { p._dc = extractDC(p); });
-    allResults = batch;
-
-    continueParams      = data?.continue || null;
-    loadMoreWrap.hidden = !continueParams;
-
-    if (!allResults.length) {
-      statusEl.textContent = "No usable media assets found for that query.";
-      return;
-    }
-
-    applyFilters();
-  } catch (err) {
-    statusEl.textContent = `Search error: ${safeHtml(err.message)}`;
-  }
-});
-</script>
+<script type="module" src="js/browse.js"></script>
 
 </body>
 </html>
