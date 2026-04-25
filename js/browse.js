@@ -12,6 +12,10 @@ const paginationWrap = document.getElementById("paginationWrap");
 const paginationEl   = document.getElementById("pagination");
 const loadMoreWrap   = document.getElementById("loadMoreWrap");
 const loadMoreBtn    = document.getElementById("loadMoreBtn");
+const browseLayout   = document.getElementById("browseLayout");
+const filterSidebar  = document.getElementById("filterSidebar");
+const filterToggleWrap = document.getElementById("filterToggleWrap");
+const quickFilters   = document.getElementById("quickFilters");
 
 /* ── Utilities ──────────────────────────────────────────────────── */
 
@@ -20,10 +24,56 @@ function debounce(fn, ms = 320) {
   return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
 }
 
-/* ── Sidebar (mobile) ───────────────────────────────────────────── */
+/* ── Sidebar visibility ─────────────────────────────────────────── */
+
+function showSidebar() {
+  if (filterSidebar.classList.contains("sidebar-visible")) return;
+  filterSidebar.classList.add("sidebar-visible");
+  browseLayout.classList.add("sidebar-visible");
+  filterToggleWrap.classList.add("sidebar-visible");
+  if (quickFilters) quickFilters.hidden = true;
+}
+
+/* ── Type-section visibility (sidebar) ─────────────────────────── */
+
+function updateTypeSections(type) {
+  document.querySelectorAll(".filter-type-section").forEach(sec => {
+    const matches = type === "all" || sec.dataset.type === type;
+    sec.classList.toggle("is-active", matches);
+
+    if (type !== "all" && sec.dataset.type === type) {
+      const toggle = sec.querySelector(".filter-section-toggle");
+      const body   = document.getElementById(toggle?.getAttribute("aria-controls"));
+      if (toggle && body && toggle.getAttribute("aria-expanded") === "false") {
+        toggle.setAttribute("aria-expanded", "true");
+        body.hidden = false;
+        sec.classList.add("open");
+      }
+    }
+  });
+}
+
+/* ── Sync pre-search bar → sidebar ─────────────────────────────── */
+
+function syncPreSearchToSidebar() {
+  if (filterSidebar.classList.contains("sidebar-visible")) return;
+
+  const preSel = document.querySelector('input[name="preMediaType"]:checked')?.value || "all";
+  const sidebarRadio = document.querySelector(`input[name="mediaType"][value="${preSel}"]`);
+  if (sidebarRadio) sidebarRadio.checked = true;
+
+  const fromVal = document.getElementById("quickDateFrom")?.value;
+  const toVal   = document.getElementById("quickDateTo")?.value;
+  if (fromVal) { const el = document.getElementById("filterYearFrom"); if (el) el.value = fromVal; }
+  if (toVal)   { const el = document.getElementById("filterYearTo");   if (el) el.value = toVal;   }
+
+  const locVal = document.getElementById("quickLocation")?.value;
+  if (locVal) { const el = document.getElementById("filterLocation"); if (el) el.value = locVal; }
+}
+
+/* ── Mobile sidebar ─────────────────────────────────────────────── */
 
 const filterToggleBtn = document.getElementById("filterToggleBtn");
-const filterSidebar   = document.getElementById("filterSidebar");
 const sidebarOverlay  = document.getElementById("sidebarOverlay");
 const sidebarClose    = document.getElementById("sidebarClose");
 
@@ -55,10 +105,9 @@ document.addEventListener("keydown", e => {
 
 document.querySelectorAll(".filter-section-toggle").forEach(btn => {
   btn.addEventListener("click", () => {
-    const section  = btn.closest(".filter-section");
-    const body     = document.getElementById(btn.getAttribute("aria-controls"));
-    const isOpen   = btn.getAttribute("aria-expanded") === "true";
-
+    const section = btn.closest(".filter-section");
+    const body    = document.getElementById(btn.getAttribute("aria-controls"));
+    const isOpen  = btn.getAttribute("aria-expanded") === "true";
     btn.setAttribute("aria-expanded", String(!isOpen));
     body.hidden = isOpen;
     section.classList.toggle("open", !isOpen);
@@ -69,7 +118,7 @@ document.querySelectorAll(".filter-section-toggle").forEach(btn => {
 
 const debouncedApply = debounce(applyFilters);
 
-["filterArtist", "filterTitle", "filterLocation", "filterGps"].forEach(id =>
+["filterImgSubject", "filterMedium", "filterAudioSubject", "filterLocation"].forEach(id =>
   document.getElementById(id)?.addEventListener("input", debouncedApply)
 );
 
@@ -77,14 +126,14 @@ const debouncedApply = debounce(applyFilters);
   document.getElementById(id)?.addEventListener("input", debouncedApply)
 );
 
-document.getElementById("filter3D")?.addEventListener("change", applyFilters);
-document.querySelectorAll('input[name="dcType"]').forEach(cb =>
-  cb.addEventListener("change", applyFilters)
+["imgFormat", "audioDuration", "audioFormat", "videoDuration", "videoFormat", "videoRes"].forEach(name =>
+  document.querySelectorAll(`input[name="${name}"]`).forEach(cb =>
+    cb.addEventListener("change", applyFilters)
+  )
 );
 
 document.getElementById("licenseFilter")?.addEventListener("change", applyFilters);
 document.getElementById("sortOrder")?.addEventListener("change", applyFilters);
-
 document.getElementById("clearFiltersBtn")?.addEventListener("click", clearAllFilters);
 
 /* ── Type filter — re-fetches server-side for audio / video ─────── */
@@ -92,6 +141,7 @@ document.getElementById("clearFiltersBtn")?.addEventListener("click", clearAllFi
 document.querySelectorAll('input[name="mediaType"]').forEach(r =>
   r.addEventListener("change", () => {
     const newType = document.querySelector('input[name="mediaType"]:checked')?.value || "all";
+    updateTypeSections(newType);
     refetchForType(newType);
   })
 );
@@ -184,12 +234,13 @@ loadMoreBtn.addEventListener("click", loadMore);
 
 /* ── Search submit ──────────────────────────────────────────────── */
 
-/* Build the API query string based on the selected field scope */
 function buildApiQuery(rawQuery, field) {
   switch (field) {
-    case "title":    return `intitle:${rawQuery}`;
-    case "location": return `${rawQuery} hastemplate:Location`;
-    default:         return rawQuery;
+    case "title":       return `intitle:${rawQuery}`;
+    case "subject":     return `incategory:${rawQuery}`;
+    case "description": return rawQuery;
+    case "creator":     return rawQuery;
+    default:            return rawQuery;
   }
 }
 
@@ -199,6 +250,8 @@ form.addEventListener("submit", async (e) => {
   const rawQuery    = document.getElementById("q").value.trim();
   const searchField = document.getElementById("searchField")?.value || "all";
   if (!rawQuery) return;
+
+  syncPreSearchToSidebar();
 
   const apiQuery = buildApiQuery(rawQuery, searchField);
 
@@ -240,6 +293,8 @@ form.addEventListener("submit", async (e) => {
       return;
     }
 
+    showSidebar();
+    updateTypeSections(selectedType);
     applyFilters();
   } catch (err) {
     statusEl.textContent = `Search error: ${safeHtml(err.message)}`;

@@ -39,43 +39,31 @@
   <div class="row justify-content-center">
     <div class="col-lg-8">
 
-      <h1 class="mb-5">About This Project</h1>
+      <h1 class="mb-5">About</h1>
 
       <div class="content-card mb-4">
-        <h2>About This Resource</h2>
+        <h2>The Resource</h2>
         <p>
-          The Creative Commons Digital Asset Finder connects users to the global
-          repository of openly licensed media hosted on Wikimedia Commons. Every
-          search result surfaces the Dublin Core metadata record for the
-          asset — including creator, rights, license, format, extent, and
-          spatial coverage where available.
-        </p>
-        <p class="mb-0">
-          Media types supported include images, audio recordings, and video.
-          All assets carry Creative Commons or equivalent open licenses and
-          are retrieved in real time via the
-          <a href="https://www.mediawiki.org/wiki/API:Action_API" target="_blank" rel="noopener noreferrer">MediaWiki Action API</a>.
-        </p>
-      </div>
-
-      <div class="content-card mb-4">
-        <h2>Overview</h2>
-        <p>
-          This application demonstrates how RESTful APIs can support discovery of
-          openly licensed media and structured rights metadata through a clean
-          scholarly interface. It is intended as a reference tool for researchers,
-          educators, and cultural heritage practitioners.
-        </p>
-        <p class="mb-0">
-          Queries are executed in real time against the
-          <a href="https://www.mediawiki.org/wiki/API:Action_API" target="_blank" rel="noopener noreferrer">MediaWiki Action API</a>,
-          drawing from the
+          The Creative Commons Digital Asset Finder is a search interface for
           <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>
-          repository of over 100 million freely reusable media files.
+          — a repository of over 100 million freely reusable media files operated by the
+          <a href="https://wikimediafoundation.org/" target="_blank" rel="noopener noreferrer">Wikimedia Foundation</a>.
+          It is designed for researchers, educators, and cultural heritage practitioners
+          who need openly licensed media with full rights and descriptive metadata.
+        </p>
+        <p>
+          Supported media types include images, audio recordings, and video.
+          All assets carry Creative Commons or equivalent open licenses.
+          Each result surfaces a complete Dublin Core metadata record — including
+          creator, rights, license, format, extent, and spatial coverage where available.
+        </p>
+        <p class="mb-0">
+          Data is retrieved live from Wikimedia Commons. No data is stored locally;
+          results always reflect the current state of the repository.
         </p>
       </div>
 
-      <div class="content-card mb-4">
+      <div class="content-card">
         <h2>Metadata Standard — Dublin Core</h2>
         <p>
           Each asset record is presented using the
@@ -120,22 +108,6 @@
           Type values follow the
           <a href="https://www.dublincore.org/specifications/dublin-core/dcmi-type-vocabulary/" target="_blank" rel="noopener noreferrer">DCMI Type Vocabulary</a>:
           <em>Image</em>, <em>Sound</em>, and <em>MovingImage</em>.
-        </p>
-      </div>
-
-      <div class="content-card">
-        <h2>Data Source &amp; API</h2>
-        <p>
-          All media and metadata are retrieved live from
-          <a href="https://commons.wikimedia.org/w/api.php" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>
-          via the MediaWiki Action API using the <code>query</code> action with
-          the <code>imageinfo</code> property and <code>extmetadata</code> sub-property.
-          No data is stored locally; results reflect the current state of the repository.
-        </p>
-        <p class="mb-0">
-          Wikimedia Commons is operated by the
-          <a href="https://wikimediafoundation.org/" target="_blank" rel="noopener noreferrer">Wikimedia Foundation</a>
-          and hosts content under Creative Commons and public domain licenses.
         </p>
       </div>
 

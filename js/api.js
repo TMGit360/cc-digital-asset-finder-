@@ -170,6 +170,8 @@ export function extractDC(page) {
     assetPage: pageUrl,
     _mimeType:     mimeType,
     _licenseShort: licenseShort,
+    _width:        info.width  || 0,
+    _duration:     typeof info.duration === "number" ? info.duration : null,
   };
 }
 

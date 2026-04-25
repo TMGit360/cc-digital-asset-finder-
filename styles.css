@@ -1064,3 +1064,161 @@ input[type="number"].filter-input::-webkit-inner-spin-button {
 
 /* h3 inside asset cards: reset browser margin so .asset-title spacing holds */
 h3.asset-title { margin-bottom: 0; }
+
+/* ── Quick Filters (pre-search bar) ──────────────────────────────── */
+
+.quick-filters {
+  max-width: 680px;
+  margin: 1.25rem auto 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .875rem 1.25rem;
+  align-items: center;
+  padding: 1rem 0 .75rem;
+  border-top: 1px solid var(--color-border-lt);
+}
+
+.quick-filter-group {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.quick-filter-label {
+  font-size: .625rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.quick-date-range {
+  display: flex;
+  align-items: center;
+  gap: .375rem;
+}
+
+.quick-date-sep {
+  color: var(--color-text-muted);
+  font-size: .875rem;
+  line-height: 1;
+}
+
+.quick-filter-input {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: .3125rem .625rem;
+  font-family: var(--font-sans);
+  font-size: .8125rem;
+  color: var(--color-text);
+  background: #fff;
+  outline: none;
+  width: 76px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.quick-filter-input--text { width: 130px; }
+
+.quick-filter-input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(124,92,42,.1);
+}
+
+.quick-filter-input::placeholder { color: var(--color-text-light); }
+
+input[type="number"].quick-filter-input { -moz-appearance: textfield; }
+input[type="number"].quick-filter-input::-webkit-outer-spin-button,
+input[type="number"].quick-filter-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+/* ── Results topbar with status ───────────────────────────────────── */
+
+.results-topbar {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.results-topbar .status-bar {
+  text-align: left;
+  margin-bottom: 0;
+  flex: 1;
+}
+
+/* ── Sidebar show / hide ──────────────────────────────────────────── */
+
+.filter-sidebar { display: none; }
+
+.filter-sidebar.sidebar-visible { display: block; }
+
+/* ── Browse layout: single column until sidebar is shown ─────────── */
+/* Overrides the 268px 1fr default set earlier in this file */
+.browse-layout { grid-template-columns: 1fr; }
+
+.browse-layout.sidebar-visible { grid-template-columns: 268px 1fr; }
+
+/* ── Type-specific filter sections ───────────────────────────────── */
+
+.filter-type-section { display: none; }
+
+.filter-type-section.is-active { display: block; }
+
+/* ── Filter fieldset (reset browser defaults) ────────────────────── */
+
+.filter-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 .125rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.filter-fieldset legend {
+  width: 100%;
+  padding: 0;
+  font-size: .5625rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* ── Media-type section in sidebar: no extra spacing ─────────────── */
+
+.filter-section--media-type .filter-section-body {
+  padding-bottom: 1rem;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  /* Override the unconditional display:block from earlier responsive block */
+  .filter-toggle-wrap { display: none; }
+  .filter-toggle-wrap.sidebar-visible { display: block; }
+
+  /* Mobile sidebar: off-screen until opened, but rendered once sidebar-visible */
+  .filter-sidebar.sidebar-visible {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 300px;
+    max-width: 85vw;
+    max-height: 100vh;
+    height: 100vh;
+    border-radius: 0;
+    z-index: 950;
+    transition: left .28s ease;
+    box-shadow: 4px 0 24px rgba(26,25,22,.18);
+  }
+
+  .filter-sidebar.sidebar-visible.open { left: 0; }
+
+  .browse-layout.sidebar-visible { grid-template-columns: 1fr; }
+
+  .quick-filters { padding: .875rem 0 .5rem; gap: .75rem; }
+}
+
+@media (max-width: 480px) {
+  .quick-filters { flex-direction: column; align-items: flex-start; }
+}
