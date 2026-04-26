@@ -1219,6 +1219,23 @@ input[type="number"].quick-filter-input::-webkit-inner-spin-button { -webkit-app
   .quick-filters { padding: .875rem 0 .5rem; gap: .75rem; }
 }
 
+/* ── Query expansion hint ──────────────────────────────────────── */
+
+.expansion-hint {
+  font-size: .8125rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin-bottom: .875rem;
+  line-height: 1.5;
+}
+
+.expansion-hint mark {
+  background: none;
+  color: var(--color-accent);
+  font-style: normal;
+  font-weight: 600;
+}
+
 /* ── Record Dialog (modal) ─────────────────────────────────────── */
 
 .record-dialog {

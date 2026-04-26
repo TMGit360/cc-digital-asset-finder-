@@ -2,10 +2,12 @@ import { state } from "./state.js";
 import { fetchBatch, apiFilterFor, extractDC, isRenderable, safeHtml } from "./api.js";
 import { applyFilters, clearAllFilters } from "./filters.js";
 import { renderPage, renderPagination, updateStatus } from "./render.js";
+import { expandQuery } from "./synonyms.js";
 
 /* ── DOM refs ───────────────────────────────────────────────────── */
 
 const form           = document.getElementById("searchForm");
+const expansionHintEl = document.getElementById("expansionHint");
 const resultsEl      = document.getElementById("results");
 const statusEl       = document.getElementById("status");
 const paginationWrap = document.getElementById("paginationWrap");
@@ -234,6 +236,14 @@ loadMoreBtn.addEventListener("click", loadMore);
 
 /* ── Search submit ──────────────────────────────────────────────── */
 
+function showExpansionHint(hints) {
+  if (!expansionHintEl) return;
+  if (!hints.length) { expansionHintEl.hidden = true; expansionHintEl.innerHTML = ""; return; }
+  const list = hints.map(h => `<mark>${safeHtml(h)}</mark>`).join(", ");
+  expansionHintEl.innerHTML = `Also searching: ${list}`;
+  expansionHintEl.hidden = false;
+}
+
 function buildApiQuery(rawQuery, field) {
   switch (field) {
     case "title":       return `intitle:${rawQuery}`;
@@ -252,8 +262,13 @@ form.addEventListener("submit", async (e) => {
   if (!rawQuery) return;
 
   syncPreSearchToSidebar();
+  showExpansionHint([]); // clear previous hint while loading
 
-  const apiQuery = buildApiQuery(rawQuery, searchField);
+  // Apply synonym expansion for broad searches
+  const expandable = searchField === "all" || searchField === "description";
+  const { query: expandedQuery, hints } = expandable ? expandQuery(rawQuery) : { query: rawQuery, hints: [] };
+
+  const apiQuery = buildApiQuery(expandedQuery, searchField);
 
   state.currentQuery    = apiQuery;
   state.allResults      = [];
@@ -296,6 +311,7 @@ form.addEventListener("submit", async (e) => {
     showSidebar();
     updateTypeSections(selectedType);
     applyFilters();
+    showExpansionHint(hints);
   } catch (err) {
     statusEl.textContent = `Search error: ${safeHtml(err.message)}`;
   }
