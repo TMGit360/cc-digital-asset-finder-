@@ -942,7 +942,7 @@ input[type="number"].filter-input::-webkit-inner-spin-button {
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .filter-bar { gap: .875rem; }
-  #results.results-grid { grid-template-columns: 1fr; }
+  #results.results-grid { grid-template-columns: 1fr 1fr; gap: .75rem; }
   .content-card { padding: 1.5rem 1.25rem; }
   .hero { padding: 3.5rem 0 3rem; }
   .search-header { padding: 2rem 0 0; }
@@ -1219,6 +1219,262 @@ input[type="number"].quick-filter-input::-webkit-inner-spin-button { -webkit-app
   .quick-filters { padding: .875rem 0 .5rem; gap: .75rem; }
 }
 
-@media (max-width: 480px) {
-  .quick-filters { flex-direction: column; align-items: flex-start; }
+/* ── Record Dialog (modal) ─────────────────────────────────────── */
+
+.record-dialog {
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 0;
+  background: var(--color-bg-card);
+  box-shadow: 0 8px 48px rgba(26,25,22,.22), 0 2px 16px rgba(26,25,22,.1);
+  width: min(700px, 92vw);
+  max-height: 88vh;
+  overflow: hidden;
+}
+
+.record-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.record-dialog::backdrop {
+  background: rgba(26,25,22,.6);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.record-dialog-inner {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  max-height: 88vh;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.record-dialog-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .75rem 1.25rem;
+  border-bottom: 1px solid var(--color-border-lt);
+  background: var(--color-bg-alt);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.record-dialog-badge {
+  font-size: .5625rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  padding: .125rem .5rem;
+  line-height: 1.5;
+}
+
+.record-dialog-close {
+  appearance: none;
+  -webkit-appearance: none;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: .375rem;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition);
+}
+
+.record-dialog-close:hover { color: var(--color-text); }
+
+.record-dialog-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.125rem, 2.5vw, 1.5rem);
+  font-weight: 400;
+  color: var(--color-text);
+  padding: 1.25rem 1.5rem .625rem;
+  margin: 0;
+  line-height: 1.3;
+  flex-shrink: 0;
+}
+
+.record-dialog-media {
+  padding: 0 1.5rem 1rem;
+  flex-shrink: 0;
+}
+
+.record-dialog-media img {
+  width: 100%;
+  max-height: 340px;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-alt);
+  display: block;
+}
+
+.record-dialog-media video {
+  width: 100%;
+  max-height: 340px;
+  border-radius: var(--radius-md);
+  background: #111;
+  display: block;
+}
+
+.record-dialog-media .asset-audio-wrap {
+  border-radius: var(--radius-md);
+  margin: 0;
+}
+
+.record-dialog-meta {
+  padding: 1rem 1.5rem 1.25rem;
+  border-top: 1px solid var(--color-border-lt);
+}
+
+.record-dialog-meta .dc-term { min-width: 130px; }
+
+.record-dialog-ft {
+  padding: .875rem 1.5rem;
+  border-top: 1px solid var(--color-border-lt);
+  background: var(--color-bg-alt);
+  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+}
+
+.record-dialog-wikimedia {
+  font-family: var(--font-sans);
+  font-size: .6875rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+.record-dialog-wikimedia:hover {
+  color: var(--color-accent-lt);
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .record-dialog {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    border-radius: 0;
+    margin: 0;
+  }
+
+  .record-dialog-inner { max-height: 100%; }
+
+  .record-dialog-title {
+    font-size: 1.125rem;
+    padding: 1rem 1rem .625rem;
+  }
+
+  .record-dialog-media { padding: 0 1rem .875rem; }
+
+  .record-dialog-meta { padding: .875rem 1rem 1.25rem; }
+
+  .record-dialog-ft { padding: .875rem 1rem; }
+}
+
+/* ── Mobile: Quick Filters card + compact grid + sort fix (≤ 768px) ── */
+
+@media (max-width: 768px) {
+
+  /* ── Quick Filters: card container with section dividers ── */
+  .quick-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
+    border: 1px solid var(--color-border-lt);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    background: var(--color-bg-card);
+    overflow: hidden;
+    margin-top: 1rem;
+  }
+
+  /* Each filter group is a padded section with a divider */
+  .quick-filter-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: .5rem;
+    width: 100%;
+    padding: .875rem 1rem;
+    border-bottom: 1px solid var(--color-border-lt);
+  }
+
+  .quick-filter-group:last-child { border-bottom: none; }
+
+  /* Type pills row: keep horizontal, fill full width */
+  .quick-filter-group[role="group"] {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: .75rem 1rem;
+  }
+
+  .quick-filter-group[role="group"] .type-pills { width: 100%; }
+
+  /* Each pill takes equal share */
+  .type-pill-label {
+    flex: 1;
+    text-align: center;
+  }
+
+  /* Date range: label above, two inputs side by side */
+  .quick-date-range {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: .375rem;
+    width: 100%;
+  }
+
+  .quick-filter-input { width: 100%; }
+
+  /* Location: label above, full-width input */
+  .quick-filter-input--text { width: 100%; }
+
+  /* ── Compact asset cards for two-column layout ── */
+  .asset-thumb { height: 130px; }
+
+  .asset-body {
+    padding: .625rem .75rem .875rem;
+    gap: .375rem;
+  }
+
+  .asset-title { font-size: .875rem; }
+
+  /* ── Sort / results topbar: stack status then sort ── */
+  .results-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .5rem;
+  }
+
+  .results-topbar .status-bar {
+    flex: none;
+    width: 100%;
+    margin-bottom: 0;
+    text-align: left;
+  }
+
+  .results-topbar .filter-group {
+    width: 100%;
+    justify-content: space-between;
+  }
 }

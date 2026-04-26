@@ -364,6 +364,33 @@
 
   </div><!-- /.browse-layout -->
 
+  <!-- ══ Record Modal ══ -->
+  <dialog class="record-dialog" id="recordDialog"
+    aria-labelledby="recordDialogTitle" aria-modal="true">
+    <div class="record-dialog-inner">
+
+      <div class="record-dialog-hd">
+        <span class="record-dialog-badge" id="recordDialogBadge"></span>
+        <button class="record-dialog-close" id="recordDialogClose"
+          type="button" aria-label="Close record">&#x2715;</button>
+      </div>
+
+      <h2 class="record-dialog-title" id="recordDialogTitle"></h2>
+
+      <div class="record-dialog-media" id="recordDialogMedia"></div>
+
+      <div class="record-dialog-meta" id="recordDialogMeta"></div>
+
+      <div class="record-dialog-ft">
+        <a class="record-dialog-wikimedia" id="recordDialogLink"
+          href="#" target="_blank" rel="noopener noreferrer" hidden>
+          View on Wikimedia Commons ↗
+        </a>
+      </div>
+
+    </div>
+  </dialog>
+
 </main>
 
 <footer>

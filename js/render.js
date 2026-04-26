@@ -7,19 +7,18 @@ const paginationWrap = document.getElementById("paginationWrap");
 const pageIndicator  = document.getElementById("pageIndicator");
 const paginationEl   = document.getElementById("pagination");
 
-/* ── Metadata toggle (delegated listener) ───────────────────────── */
+const resultMap = new Map(); // pageid → result, for modal lookup
+
+/* ── Card click: open record modal ──────────────────────────────── */
 
 resultsEl.addEventListener("click", e => {
   const btn = e.target.closest(".metadata-toggle");
   if (!btn) return;
-  const panel   = document.getElementById(btn.getAttribute("aria-controls"));
-  if (!panel) return;
-  const expanded = btn.getAttribute("aria-expanded") === "true";
-  btn.setAttribute("aria-expanded", String(!expanded));
-  panel.hidden  = expanded;
+  const card = btn.closest(".asset-card");
+  if (card?.dataset.pageid) openRecordModal(card.dataset.pageid);
 });
 
-/* ── Media element ──────────────────────────────────────────────── */
+/* ── Media element (card thumbnail) ────────────────────────────── */
 
 function renderMediaElement(info, displayTitle) {
   const mimeType = sanitizeMime(info.mime);
@@ -52,7 +51,34 @@ function renderMediaElement(info, displayTitle) {
   return `<img src="${safeHtml(thumbUrl)}" class="asset-thumb" alt="${altText}" loading="lazy">`;
 }
 
-/* ── Dublin Core metadata panel ─────────────────────────────────── */
+/* ── Media element (modal — uses original URL where possible) ───── */
+
+function renderModalMedia(info, displayTitle) {
+  const mimeType = sanitizeMime(info.mime);
+  const mediaUrl = sanitizeUrl(info.url);
+  const thumbUrl = sanitizeUrl(info.thumburl) || mediaUrl;
+  const altText  = safeHtml(displayTitle || "Media asset");
+
+  if (!mimeType) return "";
+
+  if (mimeType.startsWith("audio/")) {
+    return `<div class="asset-audio-wrap">
+      <audio controls aria-label="${altText}">
+        <source src="${safeHtml(mediaUrl)}" type="${safeHtml(mimeType)}">
+      </audio>
+    </div>`;
+  }
+
+  if (mimeType.startsWith("video/")) {
+    return `<video controls aria-label="${altText}">
+      <source src="${safeHtml(mediaUrl)}" type="${safeHtml(mimeType)}">
+    </video>`;
+  }
+
+  return `<img src="${safeHtml(thumbUrl)}" alt="${altText}" loading="lazy">`;
+}
+
+/* ── Dublin Core metadata rows ──────────────────────────────────── */
 
 function buildMetadataRows(dc) {
   const rows = [
@@ -85,7 +111,7 @@ function buildMetadataRows(dc) {
       let displayVal;
       if (isUrl) {
         const safe  = safeHtml(r.value);
-        const label = r.value.length > 55 ? safeHtml(r.value.slice(0, 55) + "…") : safe;
+        const label = r.value.length > 60 ? safeHtml(r.value.slice(0, 60) + "…") : safe;
         displayVal  = `<a href="${safe}" target="_blank" rel="noopener noreferrer">${label}</a>`;
       } else {
         displayVal = safeHtml(r.value);
@@ -114,15 +140,17 @@ export function renderPage(page) {
 
   const badgeLabel = { Image: "IMAGE", Sound: "AUDIO", MovingImage: "VIDEO" };
 
-  slice.forEach((p, idx) => {
+  slice.forEach((p) => {
     const dc      = p._dc;
     const info    = p.imageinfo[0];
     const badge   = badgeLabel[dc.type] || dc.type.toUpperCase();
-    const panelId = `meta-${p.pageid || (start + idx)}`;
     const dateStr = formatDate(dc.date);
+
+    resultMap.set(String(p.pageid), p);
 
     const col = document.createElement("article");
     col.className = "asset-card";
+    col.setAttribute("data-pageid", String(p.pageid));
 
     col.innerHTML = `
       ${renderMediaElement(info, dc.displayTitle)}
@@ -130,19 +158,48 @@ export function renderPage(page) {
         <span class="asset-badge" aria-hidden="true">${safeHtml(badge)}</span>
         <h3 class="asset-title">${safeHtml(dc.displayTitle || "Untitled")}</h3>
         ${dateStr ? `<p class="asset-date">${safeHtml(dateStr)}</p>` : ""}
-        <button class="metadata-toggle" type="button"
-          aria-expanded="false" aria-controls="${panelId}">
+        <button class="metadata-toggle" type="button" aria-haspopup="dialog">
           <span class="toggle-arrow" aria-hidden="true">&#9654;</span>
           View Record
         </button>
-        <div class="metadata-panel" id="${panelId}" hidden>
-          ${buildMetadataRows(dc)}
-        </div>
       </div>
     `;
 
     resultsEl.appendChild(col);
   });
+}
+
+/* ── Record modal ────────────────────────────────────────────────── */
+
+const recordDialog = document.getElementById("recordDialog");
+
+function openRecordModal(pageid) {
+  const p = resultMap.get(pageid);
+  if (!p || !recordDialog) return;
+
+  const dc   = p._dc;
+  const info = p.imageinfo[0];
+  const badgeLabel = { Image: "IMAGE", Sound: "AUDIO", MovingImage: "VIDEO" };
+
+  document.getElementById("recordDialogBadge").textContent = badgeLabel[dc.type] || dc.type.toUpperCase();
+  document.getElementById("recordDialogTitle").textContent = dc.displayTitle || "Untitled";
+  document.getElementById("recordDialogMedia").innerHTML   = renderModalMedia(info, dc.displayTitle);
+  document.getElementById("recordDialogMeta").innerHTML    = buildMetadataRows(dc);
+
+  const link = document.getElementById("recordDialogLink");
+  if (link) {
+    link.hidden = !dc.assetPage;
+    if (dc.assetPage) link.href = dc.assetPage;
+  }
+
+  document.body.style.overflow = "hidden";
+  recordDialog.showModal();
+}
+
+if (recordDialog) {
+  document.getElementById("recordDialogClose")?.addEventListener("click", () => recordDialog.close());
+  recordDialog.addEventListener("click", e => { if (e.target === recordDialog) recordDialog.close(); });
+  recordDialog.addEventListener("close", () => { document.body.style.overflow = ""; });
 }
 
 /* ── Status text ────────────────────────────────────────────────── */
@@ -167,10 +224,10 @@ function createPageItem(label, page, disabled = false, active = false) {
   btn.type        = "button";
   btn.textContent = label;
 
-  if (active)           btn.setAttribute("aria-current",  "page");
-  if (disabled)         btn.setAttribute("aria-disabled", "true");
-  if (label === "Previous") btn.setAttribute("aria-label", "Go to previous page");
-  if (label === "Next")     btn.setAttribute("aria-label", "Go to next page");
+  if (active)               btn.setAttribute("aria-current",  "page");
+  if (disabled)             btn.setAttribute("aria-disabled", "true");
+  if (label === "Previous") btn.setAttribute("aria-label",    "Go to previous page");
+  if (label === "Next")     btn.setAttribute("aria-label",    "Go to next page");
 
   if (!disabled && !active) btn.addEventListener("click", () => goToPage(page));
 
