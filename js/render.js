@@ -84,23 +84,23 @@ function buildMetadataRows(dc) {
   const rows = [
     { term: "dc:title",             label: "Title",            value: dc.title },
     { term: "dc:creator",           label: "Creator",          value: dc.creator },
-    { term: "dc:contributor",       label: "Contributor",      value: dc.contributor },
+    { term: "dc:date",              label: "Date",             value: dc.date },
     { term: "dc:description",       label: "Description",      value: dc.description },
     { term: "dc:subject",           label: "Subject",          value: dc.subject },
-    { term: "dc:date",              label: "Date",             value: dc.date },
-    { term: "dcterms:modified",     label: "Modified",         value: dc.dateModified },
     { term: "dc:type",              label: "Type",             value: dc.type },
     { term: "dc:format",            label: "Format",           value: dc.format },
     { term: "dcterms:medium",       label: "Medium",           value: dc.medium },
     { term: "dcterms:extent",       label: "Extent",           value: dc.extent },
+    { term: "dcterms:spatial",      label: "Location",         value: dc.spatial },
+    { term: "dc:contributor",       label: "Contributor",      value: dc.contributor },
     { term: "dc:publisher",         label: "Publisher",        value: dc.publisher },
     { term: "dc:source",            label: "Source",           value: dc.source,      isUrl: true },
-    { term: "dc:identifier",        label: "Identifier",       value: dc.identifier },
-    { term: "dc:language",          label: "Language",         value: dc.language },
-    { term: "dcterms:spatial",      label: "Spatial Coverage", value: dc.spatial },
     { term: "dc:rights",            label: "Rights",           value: dc.rights },
     { term: "dcterms:license",      label: "License",          value: dc.licenseUrl,  isUrl: true },
     { term: "dcterms:accessRights", label: "Access Rights",    value: dc.accessRights },
+    { term: "dc:language",          label: "Language",         value: dc.language },
+    { term: "dcterms:modified",     label: "Modified",         value: dc.dateModified },
+    { term: "dc:identifier",        label: "Identifier",       value: dc.identifier },
     { term: "—",                    label: "Asset Page",       value: dc.assetPage,   isUrl: true },
   ];
 
@@ -133,7 +133,16 @@ export function renderPage(page) {
   const slice = state.filteredResults.slice(start, start + RESULTS_PER_PAGE);
 
   if (!slice.length) {
-    statusEl.textContent  = "No results match the current filters.";
+    statusEl.textContent = "";
+    resultsEl.innerHTML = `<div class="empty-state">
+    <p class="empty-state-msg">No results match the current filters.</p>
+    <p class="empty-state-hint">Try broadening your filters, or
+      <button type="button" class="empty-state-link">start a new search</button>
+      to browse the collection by topic.</p>
+  </div>`;
+    resultsEl.querySelector(".empty-state-link")?.addEventListener("click", () => {
+      document.dispatchEvent(new CustomEvent("reset-search"));
+    });
     paginationWrap.hidden = true;
     return;
   }

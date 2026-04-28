@@ -101,6 +101,47 @@
           </div>
         </div>
 
+        <!-- Browse-by-Topic launcher: inline expanding panel below the search bar -->
+        <div class="browse-topics-launcher" id="browseTopicsLauncher">
+          <button type="button" class="btn-browse-topics" id="browseTopicsBtn"
+            aria-expanded="false" aria-controls="topicPanelBody">
+            <svg class="btn-browse-topics-icon" xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+              stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            <span class="btn-browse-topics-label">Browse by topic</span>
+            <span class="topic-trigger-badge" hidden></span>
+            <svg class="btn-browse-topics-chevron" xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 10 6" width="10" height="6" fill="currentColor" aria-hidden="true">
+              <path d="M0 0l5 6 5-6z"/>
+            </svg>
+          </button>
+
+          <div class="topic-panel-body" id="topicPanelBody" hidden>
+            <span class="topic-panel-live sr-only" id="topicPanelLive"
+              aria-live="polite" aria-atomic="true"></span>
+            <div class="accordion topic-accordion" id="topicAccordion"></div>
+            <div class="topic-panel-footer">
+              <button type="button" class="btn-clear-filters topic-panel-clear"
+                id="topicPanelClearBtn" disabled>
+                Clear all selections
+              </button>
+              <button type="button" class="search-btn topic-panel-apply"
+                id="topicPanelApplyBtn" disabled>
+                Apply
+              </button>
+            </div>
+          </div>
+
+          <noscript>
+            <p class="browse-topics-noscript">Type a keyword above to search the collection.</p>
+          </noscript>
+        </div>
+
       </div>
     </div>
   </div>
@@ -152,99 +193,69 @@
             <input type="radio" name="mediaType" id="typeAudio" value="audio">
             <label class="type-pill-label" for="typeAudio">Audio</label>
           </div>
-        </div>
-      </div>
 
-      <!-- ── Images sub-filters ── -->
-      <div class="filter-section filter-type-section" data-type="image">
-        <button class="filter-section-toggle" type="button"
-          aria-expanded="false" aria-controls="fb-images">
-          Images
-          <svg class="toggle-icon" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
-            <path d="M0 0l5 6 5-6z" fill="currentColor"/>
-          </svg>
-        </button>
-        <div class="filter-section-body" id="fb-images" hidden>
-          <fieldset class="filter-fieldset">
-            <legend class="filter-field-label">Format</legend>
-            <label class="filter-checkbox-label"><input type="checkbox" name="imgFormat" value="jpeg"><span>JPEG</span></label>
-            <label class="filter-checkbox-label"><input type="checkbox" name="imgFormat" value="png"><span>PNG</span></label>
-            <label class="filter-checkbox-label"><input type="checkbox" name="imgFormat" value="svg"><span>SVG</span></label>
-            <label class="filter-checkbox-label"><input type="checkbox" name="imgFormat" value="tiff"><span>TIFF</span></label>
-            <label class="filter-checkbox-label"><input type="checkbox" name="imgFormat" value="webp"><span>WebP</span></label>
-            <label class="filter-checkbox-label"><input type="checkbox" name="imgFormat" value="gif"><span>GIF</span></label>
-          </fieldset>
-          <div class="filter-field">
-            <label class="filter-field-label" for="filterImgSubject">Subject / Category</label>
-            <input type="text" id="filterImgSubject" class="filter-input"
-              placeholder="e.g. Portraits, Nature" autocomplete="off">
+          <div class="filter-sub-panel" data-type="image" hidden>
+            <fieldset class="filter-fieldset">
+              <legend class="filter-field-label">Format</legend>
+              <label class="filter-checkbox-label"><input type="checkbox" name="imgFormat" value="jpeg"><span>JPEG</span></label>
+              <label class="filter-checkbox-label"><input type="checkbox" name="imgFormat" value="png"><span>PNG</span></label>
+              <label class="filter-checkbox-label"><input type="checkbox" name="imgFormat" value="svg"><span>SVG</span></label>
+              <label class="filter-checkbox-label"><input type="checkbox" name="imgFormat" value="tiff"><span>TIFF</span></label>
+              <label class="filter-checkbox-label"><input type="checkbox" name="imgFormat" value="webp"><span>WebP</span></label>
+              <label class="filter-checkbox-label"><input type="checkbox" name="imgFormat" value="gif"><span>GIF</span></label>
+            </fieldset>
+            <div class="filter-field">
+              <label class="filter-field-label" for="filterImgSubject">Subject / Category</label>
+              <input type="text" id="filterImgSubject" class="filter-input"
+                placeholder="e.g. Portraits, Nature" autocomplete="off">
+            </div>
+            <div class="filter-field">
+              <label class="filter-field-label" for="filterMedium">Medium</label>
+              <input type="text" id="filterMedium" class="filter-input"
+                placeholder="e.g. photograph, watercolor" autocomplete="off">
+            </div>
           </div>
-          <div class="filter-field">
-            <label class="filter-field-label" for="filterMedium">Medium</label>
-            <input type="text" id="filterMedium" class="filter-input"
-              placeholder="e.g. photograph, watercolor" autocomplete="off">
-          </div>
-        </div>
-      </div>
 
-      <!-- ── Audio sub-filters ── -->
-      <div class="filter-section filter-type-section" data-type="audio">
-        <button class="filter-section-toggle" type="button"
-          aria-expanded="false" aria-controls="fb-audio">
-          Audio
-          <svg class="toggle-icon" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
-            <path d="M0 0l5 6 5-6z" fill="currentColor"/>
-          </svg>
-        </button>
-        <div class="filter-section-body" id="fb-audio" hidden>
-          <div class="filter-field">
-            <label class="filter-field-label" for="filterAudioSubject">Subject / Category</label>
-            <input type="text" id="filterAudioSubject" class="filter-input"
-              placeholder="e.g. Music, Speech, Nature" autocomplete="off">
+          <div class="filter-sub-panel" data-type="audio" hidden>
+            <div class="filter-field">
+              <label class="filter-field-label" for="filterAudioSubject">Subject / Category</label>
+              <input type="text" id="filterAudioSubject" class="filter-input"
+                placeholder="e.g. Music, Speech, Nature" autocomplete="off">
+            </div>
+            <fieldset class="filter-fieldset">
+              <legend class="filter-field-label">Duration</legend>
+              <label class="filter-checkbox-label"><input type="checkbox" name="audioDuration" value="short"><span>Short (&lt;30 sec)</span></label>
+              <label class="filter-checkbox-label"><input type="checkbox" name="audioDuration" value="medium"><span>Medium (30 sec – 5 min)</span></label>
+              <label class="filter-checkbox-label"><input type="checkbox" name="audioDuration" value="long"><span>Long (&gt;5 min)</span></label>
+            </fieldset>
+            <fieldset class="filter-fieldset">
+              <legend class="filter-field-label">Format</legend>
+              <label class="filter-checkbox-label"><input type="checkbox" name="audioFormat" value="ogg"><span>OGG</span></label>
+              <label class="filter-checkbox-label"><input type="checkbox" name="audioFormat" value="mp3"><span>MP3</span></label>
+              <label class="filter-checkbox-label"><input type="checkbox" name="audioFormat" value="wav"><span>WAV</span></label>
+              <label class="filter-checkbox-label"><input type="checkbox" name="audioFormat" value="flac"><span>FLAC</span></label>
+            </fieldset>
           </div>
-          <fieldset class="filter-fieldset">
-            <legend class="filter-field-label">Duration</legend>
-            <label class="filter-checkbox-label"><input type="checkbox" name="audioDuration" value="short"><span>Short (&lt;30 sec)</span></label>
-            <label class="filter-checkbox-label"><input type="checkbox" name="audioDuration" value="medium"><span>Medium (30 sec – 5 min)</span></label>
-            <label class="filter-checkbox-label"><input type="checkbox" name="audioDuration" value="long"><span>Long (&gt;5 min)</span></label>
-          </fieldset>
-          <fieldset class="filter-fieldset">
-            <legend class="filter-field-label">Format</legend>
-            <label class="filter-checkbox-label"><input type="checkbox" name="audioFormat" value="ogg"><span>OGG</span></label>
-            <label class="filter-checkbox-label"><input type="checkbox" name="audioFormat" value="mp3"><span>MP3</span></label>
-            <label class="filter-checkbox-label"><input type="checkbox" name="audioFormat" value="wav"><span>WAV</span></label>
-            <label class="filter-checkbox-label"><input type="checkbox" name="audioFormat" value="flac"><span>FLAC</span></label>
-          </fieldset>
-        </div>
-      </div>
 
-      <!-- ── Video sub-filters ── -->
-      <div class="filter-section filter-type-section" data-type="video">
-        <button class="filter-section-toggle" type="button"
-          aria-expanded="false" aria-controls="fb-video">
-          Video
-          <svg class="toggle-icon" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
-            <path d="M0 0l5 6 5-6z" fill="currentColor"/>
-          </svg>
-        </button>
-        <div class="filter-section-body" id="fb-video" hidden>
-          <fieldset class="filter-fieldset">
-            <legend class="filter-field-label">Duration</legend>
-            <label class="filter-checkbox-label"><input type="checkbox" name="videoDuration" value="short"><span>Short (&lt;2 min)</span></label>
-            <label class="filter-checkbox-label"><input type="checkbox" name="videoDuration" value="medium"><span>Medium (2 – 20 min)</span></label>
-            <label class="filter-checkbox-label"><input type="checkbox" name="videoDuration" value="long"><span>Long (&gt;20 min)</span></label>
-          </fieldset>
-          <fieldset class="filter-fieldset">
-            <legend class="filter-field-label">Format</legend>
-            <label class="filter-checkbox-label"><input type="checkbox" name="videoFormat" value="webm"><span>WebM</span></label>
-            <label class="filter-checkbox-label"><input type="checkbox" name="videoFormat" value="mp4"><span>MP4</span></label>
-            <label class="filter-checkbox-label"><input type="checkbox" name="videoFormat" value="ogv"><span>OGG Video</span></label>
-          </fieldset>
-          <fieldset class="filter-fieldset">
-            <legend class="filter-field-label">Resolution</legend>
-            <label class="filter-checkbox-label"><input type="checkbox" name="videoRes" value="hd"><span>HD (≥1280px wide)</span></label>
-            <label class="filter-checkbox-label"><input type="checkbox" name="videoRes" value="sd"><span>SD (&lt;1280px wide)</span></label>
-          </fieldset>
+          <div class="filter-sub-panel" data-type="video" hidden>
+            <fieldset class="filter-fieldset">
+              <legend class="filter-field-label">Duration</legend>
+              <label class="filter-checkbox-label"><input type="checkbox" name="videoDuration" value="short"><span>Short (&lt;2 min)</span></label>
+              <label class="filter-checkbox-label"><input type="checkbox" name="videoDuration" value="medium"><span>Medium (2 – 20 min)</span></label>
+              <label class="filter-checkbox-label"><input type="checkbox" name="videoDuration" value="long"><span>Long (&gt;20 min)</span></label>
+            </fieldset>
+            <fieldset class="filter-fieldset">
+              <legend class="filter-field-label">Format</legend>
+              <label class="filter-checkbox-label"><input type="checkbox" name="videoFormat" value="webm"><span>WebM</span></label>
+              <label class="filter-checkbox-label"><input type="checkbox" name="videoFormat" value="mp4"><span>MP4</span></label>
+              <label class="filter-checkbox-label"><input type="checkbox" name="videoFormat" value="ogv"><span>OGG Video</span></label>
+            </fieldset>
+            <fieldset class="filter-fieldset">
+              <legend class="filter-field-label">Resolution</legend>
+              <label class="filter-checkbox-label"><input type="checkbox" name="videoRes" value="hd"><span>HD (≥1280px wide)</span></label>
+              <label class="filter-checkbox-label"><input type="checkbox" name="videoRes" value="sd"><span>SD (&lt;1280px wide)</span></label>
+            </fieldset>
+          </div>
         </div>
       </div>
 
@@ -300,11 +311,11 @@
         </div>
       </div>
 
-      <!-- ── Geographic Location (shared) ── -->
+      <!-- ── Location (shared) ── -->
       <div class="filter-section">
         <button class="filter-section-toggle" type="button"
           aria-expanded="false" aria-controls="fb-geo">
-          Geographic Location
+          Location
           <svg class="toggle-icon" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
             <path d="M0 0l5 6 5-6z" fill="currentColor"/>
           </svg>
@@ -321,6 +332,9 @@
       <div class="sidebar-footer">
         <button type="button" class="btn-clear-filters" id="clearFiltersBtn">
           Clear all filters
+        </button>
+        <button type="button" class="btn-new-search" id="newSearchBtn">
+          New Search
         </button>
       </div>
 

@@ -74,7 +74,6 @@ export async function fetchBatch(query, cont = null, gsrfiletype = null) {
   url.searchParams.set("format",       "json");
   url.searchParams.set("action",       "query");
   url.searchParams.set("generator",    "search");
-  url.searchParams.set("gsrsearch",    query);
   url.searchParams.set("gsrnamespace", "6");
   url.searchParams.set("gsrlimit",     String(FETCH_BATCH));
   url.searchParams.set("gsrsort",      "relevance");
@@ -83,8 +82,23 @@ export async function fetchBatch(query, cont = null, gsrfiletype = null) {
   url.searchParams.set("cllimit",      "15");
   url.searchParams.set("inprop",       "url");
 
+  // filetype: must be injected into the CirrusSearch query string (outside a
+  // parenthesized OR group) — gsrfiletype as a URL parameter is broken on Commons.
+  // Quoted multi-word phrases inside the OR group hit a complexity limit, so we
+  // strip them and cap at 8 single-word terms for audio/video queries.
+  let searchQuery = query;
+  if (gsrfiletype === "audio" || gsrfiletype === "video") {
+    const parts = query
+      .split(/\s+OR\s+/i)
+      .map(t => t.trim().replace(/^["']|["']$/g, ""))
+      .filter(t => t && !t.includes(" "))
+      .slice(0, 8);
+    const safeTerms = parts.length ? parts.join(" OR ") : query;
+    searchQuery = `(${safeTerms}) filetype:${gsrfiletype}`;
+  }
+  url.searchParams.set("gsrsearch", searchQuery);
+
   if (gsrfiletype !== "audio") url.searchParams.set("iiurlwidth", "520");
-  if (gsrfiletype)             url.searchParams.set("gsrfiletype", gsrfiletype);
   if (cont) Object.entries(cont).forEach(([k, v]) => url.searchParams.set(k, String(v)));
 
   const resp = await fetch(url.toString());

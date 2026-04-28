@@ -3,6 +3,7 @@ import { fetchBatch, apiFilterFor, extractDC, isRenderable, safeHtml } from "./a
 import { applyFilters, clearAllFilters } from "./filters.js";
 import { renderPage, renderPagination, updateStatus } from "./render.js";
 import { expandQuery } from "./synonyms.js";
+import { initTopicPanel, clearTopicSelections } from "./topic-panel.js";
 
 /* ── DOM refs ───────────────────────────────────────────────────── */
 
@@ -18,6 +19,22 @@ const browseLayout   = document.getElementById("browseLayout");
 const filterSidebar  = document.getElementById("filterSidebar");
 const filterToggleWrap = document.getElementById("filterToggleWrap");
 const quickFilters   = document.getElementById("quickFilters");
+
+/* ── Topic panel wiring ─────────────────────────────────────────── */
+
+let _panelFiredSearch = false;
+
+initTopicPanel(({ query }) => {
+  if (!query) return;
+  _panelFiredSearch = true;
+  const qInput = document.getElementById("q");
+  if (qInput) qInput.value = query;
+  const fieldSel = document.getElementById("searchField");
+  if (fieldSel) fieldSel.value = "all";
+  const allPill = document.querySelector('input[name="preMediaType"][value="all"]');
+  if (allPill) allPill.checked = true;
+  form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+});
 
 /* ── Utilities ──────────────────────────────────────────────────── */
 
@@ -39,19 +56,8 @@ function showSidebar() {
 /* ── Type-section visibility (sidebar) ─────────────────────────── */
 
 function updateTypeSections(type) {
-  document.querySelectorAll(".filter-type-section").forEach(sec => {
-    const matches = type === "all" || sec.dataset.type === type;
-    sec.classList.toggle("is-active", matches);
-
-    if (type !== "all" && sec.dataset.type === type) {
-      const toggle = sec.querySelector(".filter-section-toggle");
-      const body   = document.getElementById(toggle?.getAttribute("aria-controls"));
-      if (toggle && body && toggle.getAttribute("aria-expanded") === "false") {
-        toggle.setAttribute("aria-expanded", "true");
-        body.hidden = false;
-        sec.classList.add("open");
-      }
-    }
+  document.querySelectorAll(".filter-sub-panel").forEach(sec => {
+    sec.hidden = type === "all" || sec.dataset.type !== type;
   });
 }
 
@@ -93,6 +99,43 @@ function closeSidebar() {
   sidebarOverlay.setAttribute("aria-hidden", "true");
   filterToggleBtn?.setAttribute("aria-expanded", "false");
   document.body.style.overflow = "";
+}
+
+function resetSearch() {
+  document.getElementById("q").value = "";
+  document.getElementById("searchField").value = "all";
+
+  state.currentQuery    = "";
+  state.allResults      = [];
+  state.filteredResults = [];
+  state.continueParams  = null;
+  state.isFetching      = false;
+  state.currentPage     = 1;
+  state.totalPages      = 1;
+
+  resultsEl.innerHTML    = "";
+  paginationWrap.hidden  = true;
+  loadMoreWrap.hidden    = true;
+  statusEl.textContent   = "";
+  if (expansionHintEl) { expansionHintEl.hidden = true; expansionHintEl.innerHTML = ""; }
+
+  clearAllFilters();
+
+  filterSidebar.classList.remove("sidebar-visible");
+  browseLayout.classList.remove("sidebar-visible");
+  filterToggleWrap.classList.remove("sidebar-visible");
+  closeSidebar();
+
+  if (quickFilters) quickFilters.hidden = false;
+  clearTopicSelections();
+
+  const allPre = document.querySelector('input[name="preMediaType"][value="all"]');
+  if (allPre) allPre.checked = true;
+  const allSide = document.querySelector('input[name="mediaType"][value="all"]');
+  if (allSide) allSide.checked = true;
+  updateTypeSections("all");
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 filterToggleBtn?.addEventListener("click", openSidebar);
@@ -137,6 +180,8 @@ const debouncedApply = debounce(applyFilters);
 document.getElementById("licenseFilter")?.addEventListener("change", applyFilters);
 document.getElementById("sortOrder")?.addEventListener("change", applyFilters);
 document.getElementById("clearFiltersBtn")?.addEventListener("click", clearAllFilters);
+document.getElementById("newSearchBtn")?.addEventListener("click", resetSearch);
+document.addEventListener("reset-search", resetSearch);
 
 /* ── Type filter — re-fetches server-side for audio / video ─────── */
 
@@ -185,7 +230,15 @@ async function refetchForType(newType) {
 
     if (!state.allResults.length) {
       const label = newType === "all" ? "media" : newType;
-      statusEl.textContent = `No ${label} assets found for "${state.currentQuery}".`;
+      statusEl.textContent = "";
+      resultsEl.innerHTML = `<div class="empty-state">
+    <p class="empty-state-msg">No ${label} assets found for this search.</p>
+    <p class="empty-state-hint">Try a different media type or
+      <button type="button" class="empty-state-link">start a new search</button>.</p>
+  </div>`;
+      resultsEl.querySelector(".empty-state-link")?.addEventListener("click", () => {
+        document.dispatchEvent(new CustomEvent("reset-search"));
+      });
       return;
     }
 
@@ -261,11 +314,15 @@ form.addEventListener("submit", async (e) => {
   const searchField = document.getElementById("searchField")?.value || "all";
   if (!rawQuery) return;
 
+  const fromPanel = _panelFiredSearch;
+  _panelFiredSearch = false;
+  if (!fromPanel) clearTopicSelections();
+
   syncPreSearchToSidebar();
   showExpansionHint([]); // clear previous hint while loading
 
-  // Apply synonym expansion for broad searches
-  const expandable = searchField === "all" || searchField === "description";
+  // Apply synonym expansion for broad searches; skip when query was assembled from the panel
+  const expandable = !fromPanel && (searchField === "all" || searchField === "description");
   const { query: expandedQuery, hints } = expandable ? expandQuery(rawQuery) : { query: rawQuery, hints: [] };
 
   const apiQuery = buildApiQuery(expandedQuery, searchField);
@@ -304,7 +361,16 @@ form.addEventListener("submit", async (e) => {
     loadMoreWrap.hidden  = !state.continueParams;
 
     if (!state.allResults.length) {
-      statusEl.textContent = "No usable media assets found for that query.";
+      statusEl.textContent = "";
+      resultsEl.innerHTML = `<div class="empty-state">
+    <p class="empty-state-msg">No media assets found for that search.</p>
+    <p class="empty-state-hint">Try different keywords, or
+      <button type="button" class="empty-state-link">browse by topic</button>
+      to explore the collection.</p>
+  </div>`;
+      resultsEl.querySelector(".empty-state-link")?.addEventListener("click", () => {
+        document.dispatchEvent(new CustomEvent("reset-search"));
+      });
       return;
     }
 
