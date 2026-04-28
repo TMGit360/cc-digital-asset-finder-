@@ -166,7 +166,7 @@ function togglePanel() {
   else openPanel();
 }
 
-function onApply() {
+function handleApply() {
   if (pending.size === 0) return;
   committed.clear();
   pending.forEach(k => committed.add(k));
@@ -197,7 +197,7 @@ export function initTopicPanel(onApply) {
 
   triggerBtn.addEventListener("click", togglePanel);
   accordionEl.addEventListener("change", onCheckboxChange);
-  applyBtn.addEventListener("click", onApply);
+  applyBtn.addEventListener("click", handleApply);
   clearBtn.addEventListener("click", onClearAll);
 
   refreshUi();
