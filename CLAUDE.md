@@ -1,6 +1,6 @@
 # Creative Commons Digital Asset Finder
 
-Static, client-side web app for searching openly licensed media (images, audio, video) from Wikimedia Commons. Target users: educators, designers, researchers. UI aspires to museum/archive quality (Met Museum for images, BBC Sound Effects for audio).
+Static, client-side web app for searching openly licensed media (images, audio, video) from Wikimedia Commons. Target users: educators, designers, researchers.
 
 ## Stack
 
