@@ -154,11 +154,12 @@ function openPanel() {
   refreshUi();
 }
 
-function closePanel() {
+function closePanel({ returnFocus = false } = {}) {
   if (!panelBodyEl) return;
   panelBodyEl.hidden = true;
   triggerBtn.setAttribute("aria-expanded", "false");
   if (liveEl) liveEl.textContent = "";
+  if (returnFocus) triggerBtn.focus();
 }
 
 function togglePanel() {
@@ -199,6 +200,20 @@ export function initTopicPanel(onApply) {
   accordionEl.addEventListener("change", onCheckboxChange);
   applyBtn.addEventListener("click", handleApply);
   clearBtn.addEventListener("click", onClearAll);
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && isPanelOpen()) {
+      e.stopPropagation();
+      closePanel({ returnFocus: true });
+    }
+  });
+
+  document.addEventListener("click", e => {
+    if (!isPanelOpen()) return;
+    if (panelBodyEl.contains(e.target)) return;
+    if (triggerBtn.contains(e.target))  return;
+    closePanel();
+  });
 
   refreshUi();
   updateTriggerBadge();

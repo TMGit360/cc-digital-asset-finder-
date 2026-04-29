@@ -2,9 +2,10 @@
    Browse-by-Topic taxonomy (12 categories).
    Each topic:    { id, label, lcClass, icon, headings[] }
    Each heading:  { label, lcsh, query }
-   The lcsh and lcClass fields are metadata kept for backend / future
-   API integrations — they are not displayed in the UI.
+   `icon` renders the LC class letter as a card-catalog spine label.
    ───────────────────────────────────────────────────────────────── */
+
+const lcMark = (cls) => `<span class="topic-lc-mark">${cls}</span>`;
 
 export const TOPICS = [
 
@@ -12,7 +13,7 @@ export const TOPICS = [
     id: "natural-history",
     label: "Natural History",
     lcClass: "Q",
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96a1 1 0 0 1 1.8.66c0 1.93-.16 5.32-1.38 8.27-1.45 3.55-4.49 5.91-8.62 6.11Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>`,
+    icon: lcMark("Q"),
     headings: [
       { label: "Animal Behavior",                lcsh: "Animal behavior",          query: "animal behavior OR ethology OR animal social behavior" },
       { label: "Arachnids",                      lcsh: "Arachnida",                query: "spider OR arachnid OR scorpion" },
@@ -39,7 +40,7 @@ export const TOPICS = [
     id: "landscapes-earth",
     label: "Landscapes & Earth",
     lcClass: "G",
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>`,
+    icon: lcMark("G"),
     headings: [
       { label: "Aerial Views",         lcsh: "Aerial photography",   query: "aerial photography OR aerial view OR landscape from above" },
       { label: "Canyons & Valleys",    lcsh: "Canyons",              query: "canyon OR valley OR gorge OR ravine" },
@@ -66,7 +67,7 @@ export const TOPICS = [
     id: "astronomy",
     label: "Astronomy",
     lcClass: "QB",
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/><path d="M19 3v4"/><path d="M21 5h-4"/></svg>`,
+    icon: lcMark("QB"),
     headings: [
       { label: "Astronauts",                lcsh: "Astronauts",                query: "astronaut OR cosmonaut OR human spaceflight" },
       { label: "Astrophotography",          lcsh: "Astronomical photography",  query: "astrophotography OR deep space photo OR night sky photography" },
@@ -93,7 +94,7 @@ export const TOPICS = [
     id: "fine-arts",
     label: "Fine Arts",
     lcClass: "N",
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>`,
+    icon: lcMark("N"),
     headings: [
       { label: "Calligraphy",           lcsh: "Calligraphy",                  query: "calligraphy OR Islamic calligraphy OR Chinese calligraphy" },
       { label: "Caricature",            lcsh: "Caricatures and cartoons",     query: "caricature OR political cartoon OR satirical drawing" },
@@ -122,7 +123,7 @@ export const TOPICS = [
     id: "architecture",
     label: "Architecture",
     lcClass: "NA",
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>`,
+    icon: lcMark("NA"),
     headings: [
       { label: "Ancient Architecture",      lcsh: "Architecture, Ancient",     query: "ancient architecture OR Greek temple OR Roman architecture" },
       { label: "Architectural Drawings",    lcsh: "Architectural drawing",     query: "architectural drawing OR blueprint OR architectural rendering" },
@@ -151,7 +152,7 @@ export const TOPICS = [
     id: "decorative-arts",
     label: "Decorative Arts",
     lcClass: "NK",
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>`,
+    icon: lcMark("NK"),
     headings: [
       { label: "Arms & Armor",           lcsh: "Arms and armor",         query: "arms and armor OR sword OR helmet OR historic weapon" },
       { label: "Bookbinding",            lcsh: "Bookbinding",            query: "bookbinding OR decorative binding OR historic bookcover" },
@@ -179,7 +180,7 @@ export const TOPICS = [
     id: "music",
     label: "Music",
     lcClass: "M",
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
+    icon: lcMark("M"),
     headings: [
       { label: "Ballet & Dance",                  lcsh: "Ballet",                 query: "ballet OR classical dance OR dance performance" },
       { label: "Classical Music",                 lcsh: "Music",                  query: "classical music OR orchestral music OR concert music" },
@@ -207,7 +208,7 @@ export const TOPICS = [
     id: "history",
     label: "History",
     lcClass: "D",
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></svg>`,
+    icon: lcMark("D"),
     headings: [
       { label: "African History",            lcsh: "Africa--History",              query: "African history OR sub-Saharan Africa history OR African civilization" },
       { label: "Age of Exploration",         lcsh: "Discoveries (in geography)",   query: "age of exploration OR voyage of discovery OR explorers" },
@@ -236,7 +237,7 @@ export const TOPICS = [
     id: "maps-cartography",
     label: "Maps & Cartography",
     lcClass: "GA",
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/><circle cx="12" cy="12" r="10"/></svg>`,
+    icon: lcMark("GA"),
     headings: [
       { label: "Atlas Pages",        lcsh: "Atlases",                     query: "atlas OR geographic atlas OR cartographic atlas" },
       { label: "Aviation Charts",    lcsh: "Aeronautical charts",         query: "aeronautical chart OR aviation map OR sectional chart" },
@@ -261,7 +262,7 @@ export const TOPICS = [
     id: "people-society",
     label: "People & Society",
     lcClass: "H",
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+    icon: lcMark("H"),
     headings: [
       { label: "Agriculture & Farming",     lcsh: "Agriculture",              query: "agriculture OR farming OR rural life OR peasant life" },
       { label: "Civic Life",                lcsh: "Civics",                   query: "civic life OR democracy OR civic engagement OR public assembly" },
@@ -290,7 +291,7 @@ export const TOPICS = [
     id: "religion-mythology",
     label: "Religion & Mythology",
     lcClass: "BL",
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 9h4"/><path d="M12 7v5"/><path d="M14 22v-4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v4"/><path d="M18 22V5.618a1 1 0 0 0-.553-.894l-4.553-2.277a2 2 0 0 0-1.788 0L6.553 4.724A1 1 0 0 0 6 5.618V22"/><path d="m18 7 3.447 1.724a1 1 0 0 1 .553.894V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.618a1 1 0 0 1 .553-.894L6 7"/></svg>`,
+    icon: lcMark("BL"),
     headings: [
       { label: "Angels & Demons",         lcsh: "Angels",                       query: "angel OR demon OR seraph OR cherub OR religious supernatural" },
       { label: "Buddhism",                lcsh: "Buddhism",                     query: "Buddhism OR Buddhist art OR Buddhist temple OR Buddha statue" },
@@ -319,7 +320,7 @@ export const TOPICS = [
     id: "science-technology",
     label: "Science & Technology",
     lcClass: "T",
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/></svg>`,
+    icon: lcMark("T"),
     headings: [
       { label: "Agriculture Technology", lcsh: "Agricultural innovations",             query: "agricultural technology OR farm machinery OR irrigation system" },
       { label: "Aviation",               lcsh: "Aeronautics",                          query: "aviation OR aeronautics OR aircraft history OR early flight" },
