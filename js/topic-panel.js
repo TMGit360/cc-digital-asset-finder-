@@ -44,7 +44,6 @@ function buildAccordion() {
     <button class="accordion-button collapsed topic-accordion-btn" type="button"
       data-bs-toggle="collapse" data-bs-target="#${collapseId}"
       aria-expanded="false" aria-controls="${collapseId}">
-      <span class="topic-accordion-icon" aria-hidden="true">${cat.icon}</span>
       <span class="topic-accordion-label">${escapeHtml(cat.label)}</span>
       <span class="topic-cat-badge" data-cat-badge="${cat.id}" hidden></span>
     </button>
